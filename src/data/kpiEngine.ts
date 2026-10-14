@@ -89,7 +89,7 @@ export function filterReservationsByDate(
     if (unitFilter && unitFilter !== 'ALL' && res.unitId !== unitFilter) return false;
     
     // Check if reservation overlaps with [startDate, endDate]
-    return res.checkInDate <= endDate && res.checkOutDate >= startDate;
+    return res.checkInDate <= endDate && res.checkOutDate > startDate;
   });
 }
 
@@ -106,7 +106,7 @@ export function calculateOccupiedNightsInPeriod(
   let recognizedRevenue = 0;
 
   const start = new Date(startDate);
-  const end = new Date(endDate);
+  const end = new Date(new Date(endDate).getTime() + 86400000);
 
   reservations.forEach(res => {
     if (res.status === 'Canceled') return;
@@ -182,7 +182,7 @@ export function calculatePropertyKPISummary(params: {
   const periodMaintenance = maintenanceOrders.filter(
     m => unitIdSet.has(m.unitId) && m.reportedDate <= endDate && (!m.resolvedDate || m.resolvedDate >= startDate)
   );
-  const outOfOrderUnitNights = periodMaintenance.reduce((sum, m) => sum + (m.causedOutOfOrderNights || 0), 0);
+  const outOfOrderUnitNights = periodMaintenance.reduce((sum, m) => sum + (m.causedOutOfOrderNights || 0), 0); // TODO: reconcile overlaps and date clipping before production
 
   // Calculate occupied nights and recognized room revenue
   const filteredRes = reservations.filter(r => unitIdSet.has(r.unitId));
@@ -198,14 +198,14 @@ export function calculatePropertyKPISummary(params: {
   );
   const alosDays = completedStays.length > 0 
     ? Number((occupiedUnitNights / completedStays.length).toFixed(1))
-    : 3.8;
+    : 0; // No completed stays: unavailable, not an invented average
 
   // Cancellation Rate
   const totalBookings = filteredRes.filter(r => r.bookingDate >= startDate && r.bookingDate <= endDate);
   const canceledBookings = totalBookings.filter(r => r.status === 'Canceled');
   const cancellationRatePercent = totalBookings.length > 0
     ? Number(((canceledBookings.length / totalBookings.length) * 100).toFixed(1))
-    : 8.5;
+    : 0; // No bookings: unavailable, not an invented cancellation rate
 
   // Occupancy, ADR, RevPAR
   const occupancyPercent = availableUnitNights > 0
@@ -263,14 +263,14 @@ export function calculatePropertyKPISummary(params: {
   );
 
   // Scaled budget if filtered
-  const scaleRatio = apartmentCount / apartments.length;
+  const scaleRatio = apartments.length > 0 ? apartmentCount / apartments.length : 0;
   const budgetRevenueRaw = budgetPeriodTransactions
     .filter(t => t.type === 'revenue')
-    .reduce((sum, t) => sum + t.amountAED, 0) || Math.round(totalRevenueAED * 0.96);
+    .reduce((sum, t) => sum + t.amountAED, 0);
   
   const budgetOpExRaw = budgetPeriodTransactions
     .filter(t => t.type === 'expense')
-    .reduce((sum, t) => sum + t.amountAED, 0) || Math.round(operatingExpensesAED * 1.02);
+    .reduce((sum, t) => sum + t.amountAED, 0);
 
   const budgetRevenueAED = Math.round(budgetRevenueRaw * scaleRatio);
   const budgetOpExAED = Math.round(budgetOpExRaw * scaleRatio);
