@@ -1,0 +1,6 @@
+{
+  "name": "Ahmed Quality Ops — Hospitality AI Command Center",
+  "description": "Professional AI-Powered Hotel & Serviced Apartment Management Platform featuring 40-unit operational intelligence, 11 coordinated AI agents, financial KPI engine, and owner reporting.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

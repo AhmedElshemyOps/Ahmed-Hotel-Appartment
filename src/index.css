@@ -1,0 +1,119 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+  }
+  
+  body {
+    font-family: var(--font-sans);
+    background-color: #0b0f19;
+    color: #f1f5f9;
+    -webkit-font-smoothing: antialiased;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #0f172a;
+}
+::-webkit-scrollbar-thumb {
+  background: #334155;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #475569;
+}
+
+.print-only {
+  display: none !important;
+}
+
+/* Print styling for PDF Owner, Executive Cockpit & Weekly Reports */
+@media print {
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  body {
+    background-color: #ffffff !important;
+    color: #0f172a !important;
+  }
+  
+  .no-print, header, nav, aside, .sidebar-container, .chat-drawer, button:not(.print-include) {
+    display: none !important;
+  }
+  
+  .print-only {
+    display: block !important;
+  }
+
+  .dashboard-print-container {
+    background-color: #ffffff !important;
+    color: #0f172a !important;
+    padding: 0 !important;
+  }
+
+  .dashboard-print-container .bg-slate-900,
+  .dashboard-print-container .bg-slate-900\/80,
+  .dashboard-print-container .bg-slate-900\/90,
+  .dashboard-print-container .bg-slate-950,
+  .dashboard-print-container .bg-slate-950\/70,
+  .dashboard-print-container .bg-slate-950\/80 {
+    background-color: #f8fafc !important;
+    border-color: #cbd5e1 !important;
+    color: #0f172a !important;
+    box-shadow: none !important;
+  }
+
+  .dashboard-print-container .text-white,
+  .dashboard-print-container .text-slate-100,
+  .dashboard-print-container .text-slate-200 {
+    color: #0f172a !important;
+  }
+
+  .dashboard-print-container .text-slate-300,
+  .dashboard-print-container .text-slate-400 {
+    color: #334155 !important;
+  }
+
+  .dashboard-print-container .text-slate-500 {
+    color: #64748b !important;
+  }
+  
+  .report-page-break {
+    page-break-after: always;
+    break-after: page;
+  }
+  
+  .report-container {
+    padding: 0 !important;
+    margin: 0 !important;
+    max-width: 100% !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    color: #0f172a !important;
+  }
+
+  .report-container * {
+    color: #0f172a !important;
+    border-color: #cbd5e1 !important;
+  }
+  
+  .print-bg-dark {
+    background-color: #1e293b !important;
+    color: #ffffff !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .print-bg-dark * {
+    color: #ffffff !important;
+  }
+}
