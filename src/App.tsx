@@ -28,6 +28,7 @@ import { getStoredRealPropertyData, saveRealPropertyData } from './data/realData
 
 import { Header } from './components/Header';
 import { Sidebar, NavigationTab } from './components/Sidebar';
+import { PropertyIntelligenceView } from './components/PropertyIntelligenceView';
 import { ExecutiveDashboard } from './components/ExecutiveDashboard';
 import { ApartmentsView } from './components/ApartmentsView';
 import { ReservationsView } from './components/ReservationsView';
@@ -306,6 +307,7 @@ export default function App() {
         />
 
         <main className="flex-1 overflow-y-auto">
+          {currentTab === 'intelligence' && <PropertyIntelligenceView apartments={activeApartments} reservations={activeReservations} transactions={activeTransactions} maintenance={activeMaintenance} complaints={activeComplaints} kpi={kpiSummary} start={dateInterval.start} end={dateInterval.end} mode={dataMode} />}
           {currentTab === 'dashboard' && (
             <ExecutiveDashboard
               kpi={kpiSummary}
