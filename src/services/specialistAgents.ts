@@ -10,7 +10,7 @@ const validDate=(d:string)=>/^\d{4}-\d{2}-\d{2}$/.test(d)&&!Number.isNaN(Date.pa
 export function analyzeSpecialists(input:SpecialistInput):SpecialistInsight[] {
   if(![input.businessDate,input.periodStart,input.periodEnd].every(validDate)||input.periodStart>input.periodEnd) throw new Error('Invalid reporting dates');
   const out:SpecialistInsight[]=[];
-  const active=input.reservations.filter(r=>r.status!=='Cancelled'&&r.status!=='No-show');
+  const active=input.reservations.filter(r=>r.status!=='Canceled');
   const arrivals=active.filter(r=>r.checkInDate===input.businessDate);
   const departures=active.filter(r=>r.checkOutDate===input.businessDate);
   const occupied=active.filter(r=>r.checkInDate<=input.businessDate&&r.checkOutDate>input.businessDate);
@@ -20,7 +20,7 @@ export function analyzeSpecialists(input:SpecialistInput):SpecialistInsight[] {
   const notReady=arrivals.filter(r=>!ready.has(r.unitId));
   if(notReady.length)out.push(insight('frontOffice','arrival-readiness','Arrival readiness requires verification',notReady.length+' arriving reservations have no inspected housekeeping task recorded for this date.',notReady.map(r=>({kind:'reservation',id:r.id})),'Confirm room readiness with front office and housekeeping before assigning arrival rooms.',['A missing inspection task does not prove a room is dirty.'],'P2'));
   if(arrivals.length||departures.length)out.push(insight('frontOffice','movement-summary','Daily arrival/departure coordination',arrivals.length+' arrivals and '+departures.length+' departures scheduled.',[...arrivals,...departures].map(r=>({kind:'reservation',id:r.id})),'Review arrival and departure coverage; early/late check-in events require a separate timestamp feed.',[],'P2'));
-  const cleaning=input.housekeeping.filter(h=>h.scheduledDate===input.businessDate&&h.status!=='Completed'&&h.status!=='Inspected');
+  const cleaning=input.housekeeping.filter(h=>h.scheduledDate===input.businessDate&&h.status!=='Clean'&&h.status!=='Inspected');
   const urgent=cleaning.filter(h=>arrivalUnits.has(h.unitId));
   if(urgent.length)out.push(insight('housekeeping','priority-turnover','Arrival-linked cleaning priority',urgent.length+' open housekeeping tasks correspond to scheduled arrivals.',urgent.map(h=>({kind:'housekeeping',id:h.id})),'Prioritize and inspect these rooms before check-in; confirm staff capacity.',['Staff rosters and exact arrival times are not available.']));
   const work=input.maintenance.filter(m=>m.reportedDate<=input.periodEnd&&(m.resolvedDate??input.periodEnd)>=input.periodStart);
