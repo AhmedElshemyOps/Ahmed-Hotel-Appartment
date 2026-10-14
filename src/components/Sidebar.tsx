@@ -2,6 +2,7 @@ import React from 'react';
 import {
   LayoutDashboard,
   Building,
+  Activity,
   CalendarCheck2,
   Wrench,
   TrendingUp,
@@ -19,6 +20,7 @@ import { UserRole } from '../types';
 export type NavigationTab = 
   | 'dashboard'
   | 'apartments'
+  | 'intelligence'
   | 'reservations'
   | 'operations'
   | 'revenue'
@@ -53,6 +55,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     category?: string;
   }[] = [
     { id: 'dashboard', label: 'Executive Dashboard', icon: LayoutDashboard },
+    { id: 'intelligence', label: 'Property Intelligence', icon: Activity },
     { id: 'apartments', label: 'Apartments (40 Units)', icon: Building, badge: '40' },
     { id: 'reservations', label: 'Reservations Ledger', icon: CalendarCheck2 },
     { id: 'operations', label: 'Operations & Facilities', icon: Wrench, badge: openCasesCount > 0 ? `${openCasesCount} Open` : undefined, badgeColor: 'bg-rose-950 text-rose-300 border-rose-800' },
