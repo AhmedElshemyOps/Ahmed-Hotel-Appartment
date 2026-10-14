@@ -1,3 +1,4 @@
+import { analyzeSpecialists } from './services/specialistAgents';
 /**
  * Ahmed Quality Ops — Hospitality AI Command Center
  * Professional Hotel & Serviced Apartment Management Platform
@@ -383,6 +384,17 @@ export default function App() {
               coordinationCases={coordinationCases}
               onUpdateRecommendationStatus={handleUpdateRecommendationStatus}
               currentRole={currentRole}
+              specialistInsights={analyzeSpecialists({
+                businessDate: new Date().toISOString().slice(0,10),
+                periodStart: '2026-10-01',
+                periodEnd: '2026-10-31',
+                apartments: activeApartments,
+                reservations: activeReservations,
+                maintenance: activeMaintenance,
+                housekeeping: activeHousekeeping,
+                complaints: activeComplaints,
+                transactions: activeTransactions,
+              })}
             />
           )}
 
