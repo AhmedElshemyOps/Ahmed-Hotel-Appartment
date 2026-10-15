@@ -326,3 +326,56 @@ test("accounting demo separates payments from revenue and keeps unknown Odoo dis
     }),
   ).toBeDisabled();
 });
+
+test("report center uses white paper, distinct date periods and isolated printable content", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await page
+    .getByRole("button", { name: "Reports Center", exact: true })
+    .click();
+  await page.getByLabel("Report date", { exact: true }).fill("2026-10-15");
+  const paper = page.locator(".management-report");
+  await expect(paper).toHaveCSS("background-color", "rgb(255, 255, 255)");
+  await expect(paper).toContainText("SYNTHETIC DEMONSTRATION");
+  await expect(paper).not.toContainText("GAAP / USALI Verified");
+  await expect(paper).not.toContainText("Property Owner & Asset Board");
+  await expect(paper).toContainText("1 Oct 2026 - 31 Oct 2026");
+  const monthlyRevenue = await paper
+    .locator(".report-kpi")
+    .filter({ hasText: "Total revenue" })
+    .innerText();
+  await page.getByRole("button", { name: "Daily report", exact: true }).click();
+  await expect(
+    paper.getByRole("heading", { name: "Daily Operations Brief", exact: true }),
+  ).toBeVisible();
+  await expect(paper).toContainText("15 Oct 2026 - 15 Oct 2026");
+  expect(
+    await paper
+      .locator(".report-kpi")
+      .filter({ hasText: "Total revenue" })
+      .innerText(),
+  ).not.toBe(monthlyRevenue);
+  await page
+    .getByRole("button", { name: "Weekly report", exact: true })
+    .click();
+  await expect(paper).toContainText("9 Oct 2026 - 15 Oct 2026");
+  await page.emulateMedia({ media: "print" });
+  await expect(page.locator(".report-toolbar")).toBeHidden();
+  await expect(paper).toHaveCSS("background-color", "rgb(255, 255, 255)");
+  await expect(
+    page.getByRole("button", { name: "Reports Center", exact: true }),
+  ).toBeHidden();
+  await page.emulateMedia({ media: "screen" });
+  const download = page.waitForEvent("download");
+  await page
+    .getByRole("button", { name: "Export report CSV", exact: true })
+    .click();
+  expect((await download).suggestedFilename()).toContain(
+    "SYNTHETIC-WEEKLY-2026-10-09",
+  );
+  await page.getByLabel("Report date", { exact: true }).fill("");
+  await expect(
+    page.getByRole("button", { name: "Print / Save PDF", exact: true }),
+  ).toBeDisabled();
+});

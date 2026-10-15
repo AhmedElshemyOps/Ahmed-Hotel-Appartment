@@ -70,3 +70,12 @@ The owner selected a **demonstration with synthetic data**. This is a local, scr
 - Migration and market-worker scripts now load `.env` consistently; the pinned historical guide flags the correction.
 - Revalidated TypeScript, frontend build, 46 existing service/database/API tests, seven browser workflows, one production smoke test and two new session isolation/secret-output tests: **56 passing tests across these checks**. GitHub CI reruns the complete suite and container build on publication.
 - Main remains unchanged. No Odoo activation, public hosting, real company imports or deployment is part of this preparation.
+
+## Report Center print redesign and organisation guide
+
+- Added a dedicated white A4 report preview/print stylesheet and isolated print document, with daily/weekly/monthly selection and real date-window calculations.
+- Removed unsupported fixed audit/approval statements, invented report narratives and mismatched CSV benchmarks. Source IDs and explicit current-state/synthetic limitations remain visible.
+- Corrected a footer-only trailing page found during PDF inspection. Daily sample is two pages; weekly/monthly samples are three pages for the reviewed fixture. Rendered PDF pages and counters checked.
+- Extended the unified beginner guide with 15 enhancements, folder/repository organisation proposals, risks and pinned evidence. No folder reorganisation was applied.
+- TypeScript, production build, 51 service/domain/database/API/session/report tests, one production smoke test and eight browser workflows passed: **60 automated tests total**. GitHub CI independently checks the final branch and Docker build.
+- Local synthetic session remains on port 3045. No main merge, public deployment or live data connection.

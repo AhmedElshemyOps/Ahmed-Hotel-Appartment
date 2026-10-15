@@ -350,7 +350,6 @@ export default function App() {
 
           {currentTab === 'reports' && (
             <ReportsView
-              kpi={kpiSummary}
               recommendations={recommendations}
               maintenanceOrders={activeMaintenance}
               complaints={activeComplaints}
