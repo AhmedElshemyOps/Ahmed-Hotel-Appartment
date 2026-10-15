@@ -1,3 +1,9 @@
+import { MemberSelect } from "../../shared/components/MemberSelect";
+import {
+  DEMO_MEMBERS,
+  memberName,
+  type TeamMember,
+} from "../../shared/team/members";
 import { Field } from "../../shared/components/Field";
 import { readinessReport } from "./report";
 import React, { useEffect, useState } from "react";
@@ -61,6 +67,7 @@ export function ReadinessCenter({
     [reason, setReason] = useState(""),
     [history, setHistory] = useState<any[]>([]),
     [member, setMember] = useState(""),
+    [employeeName, setEmployeeName] = useState(""),
     [caps, setCaps] = useState<Capability[]>([]),
     [channel, setChannel] = useState("Airbnb");
   const gm = role === "General Manager";
@@ -73,7 +80,7 @@ export function ReadinessCenter({
         (prev: any) =>
           prev ?? {
             capabilities: ["compliance", "operations", "distribution"],
-            members: [{ uid: "synthetic-gm", role: "General Manager" }],
+            members: DEMO_MEMBERS.map((m) => ({ ...m })),
             grants: [],
             units: apartments.map((u, i) => {
               const state = initialReadiness();
@@ -105,7 +112,7 @@ export function ReadinessCenter({
         } else if (live)
           setSnapshot({
             capabilities: ["compliance", "operations", "distribution"],
-            members: [{ uid: "synthetic-gm", role: "General Manager" }],
+            members: DEMO_MEMBERS.map((m) => ({ ...m })),
             grants: [],
             units: apartments.map((u, i) => {
               const state = initialReadiness();
@@ -142,6 +149,12 @@ export function ReadinessCenter({
       setMessage("");
     }
   }, [unit]);
+  const members: TeamMember[] = snapshot?.members ?? [];
+  const selectedMember = members.find((m) => m.uid === member);
+  useEffect(() => {
+    setEmployeeName(selectedMember?.displayName ?? "");
+  }, [member, selectedMember?.displayName]);
+  const person = (uid: string) => memberName(members, uid);
   const summary = assess(draft, businessDate());
   function patch<K extends keyof ReadinessState>(
     key: K,
@@ -330,7 +343,8 @@ export function ReadinessCenter({
                 sources. These are company rules, not a complete legal checklist
                 supplied by this app.
               </p>
-              <Field labelClassName="block text-sm"
+              <Field
+                labelClassName="block text-sm"
                 label="Jurisdiction"
                 value={draft.jurisdiction}
                 onChange={(v) => patch("jurisdiction", v)}
@@ -353,12 +367,14 @@ export function ReadinessCenter({
                 />{" "}
                 Authorized jurisdiction review completed
               </label>
-              <Field labelClassName="block text-sm"
+              <Field
+                labelClassName="block text-sm"
                 label="Unresolved legal restriction"
                 value={draft.restriction}
                 onChange={(v) => patch("restriction", v)}
               />
-              <Field labelClassName="block text-sm"
+              <Field
+                labelClassName="block text-sm"
                 label="Reminder days before expiry (comma separated)"
                 value={draft.reminderDays.join(",")}
                 onChange={(v) =>
@@ -377,7 +393,8 @@ export function ReadinessCenter({
                       "validUntil",
                     ] as const
                   ).map((k) => (
-                    <Field labelClassName="block text-sm"
+                    <Field
+                      labelClassName="block text-sm"
                       key={k}
                       label={
                         {
@@ -505,12 +522,12 @@ export function ReadinessCenter({
                         "issuedOn",
                         "expiresOn",
                         "renewalOn",
-                        "responsibleUid",
                         "evidenceUrl",
                         "notes",
                       ] as const
                     ).map((k) => (
-                      <Field labelClassName="block text-sm"
+                      <Field
+                        labelClassName="block text-sm"
                         key={k}
                         label={
                           {
@@ -520,7 +537,6 @@ export function ReadinessCenter({
                             issuedOn: "Issue date",
                             expiresOn: "Expiry date",
                             renewalOn: "Renewal deadline",
-                            responsibleUid: "Responsible team UID",
                             evidenceUrl: "Private evidence HTTPS link",
                             notes: "Notes",
                           }[k]
@@ -538,6 +554,19 @@ export function ReadinessCenter({
                       />
                     ))}
                   </div>
+                  <MemberSelect
+                    label="Responsible employee"
+                    value={d.responsibleUid}
+                    members={members}
+                    onChange={(v) =>
+                      patch(
+                        "documents",
+                        draft.documents.map((p, j) =>
+                          j === i ? { ...p, responsibleUid: v } : p,
+                        ),
+                      )
+                    }
+                  />
                   <Select
                     label="Verification status"
                     value={d.status}
@@ -561,7 +590,8 @@ export function ReadinessCenter({
                     }
                   />
                   <p>
-                    Verified by: {d.verifiedBy || "No reviewer"} ·{" "}
+                    Verified by:{" "}
+                    {d.verifiedBy ? person(d.verifiedBy) : "No reviewer"} ·{" "}
                     {d.verifiedAt || "Not verified"}
                   </p>
                 </fieldset>
@@ -610,7 +640,7 @@ export function ReadinessCenter({
           {summary.alerts.map((a) => (
             <p className={box} key={a.documentId}>
               {a.reason} · {a.reference} · {a.daysRemaining} days remaining ·
-              Responsible: {a.responsibleUid}
+              Responsible: {person(a.responsibleUid)}
             </p>
           ))}
         </>
@@ -660,7 +690,8 @@ export function ReadinessCenter({
                         />{" "}
                         {c.label}
                       </label>
-                      <Field labelClassName="block text-sm"
+                      <Field
+                        labelClassName="block text-sm"
                         label={c.label + " evidence URL"}
                         value={c.evidenceUrl || ""}
                         onChange={(v) =>
@@ -696,16 +727,11 @@ export function ReadinessCenter({
               <h3>Assigned tasks</h3>
               {draft.tasks.map((t, i) => (
                 <div className={box} key={t.id}>
-                  {(["label", "responsibleUid", "dueOn"] as const).map((k) => (
-                    <Field labelClassName="block text-sm"
+                  {(["label", "dueOn"] as const).map((k) => (
+                    <Field
+                      labelClassName="block text-sm"
                       key={k}
-                      label={
-                        k === "label"
-                          ? "Task"
-                          : k === "responsibleUid"
-                            ? "Assigned team UID"
-                            : "Due date"
-                      }
+                      label={k === "label" ? "Task" : "Due date"}
                       type={k === "dueOn" ? "date" : "text"}
                       value={t[k]}
                       onChange={(v) =>
@@ -718,6 +744,19 @@ export function ReadinessCenter({
                       }
                     />
                   ))}
+                  <MemberSelect
+                    label="Assigned employee"
+                    value={t.responsibleUid}
+                    members={members}
+                    onChange={(v) =>
+                      patch(
+                        "tasks",
+                        draft.tasks.map((p, j) =>
+                          j === i ? { ...p, responsibleUid: v } : p,
+                        ),
+                      )
+                    }
+                  />
                   <Select
                     label="Task status"
                     value={t.status}
@@ -775,7 +814,8 @@ export function ReadinessCenter({
                 ]}
                 onChange={(v) => patch("status", v as any)}
               />
-              <Field labelClassName="block text-sm"
+              <Field
+                labelClassName="block text-sm"
                 label="Approval or status-change reason"
                 value={reason}
                 onChange={setReason}
@@ -824,7 +864,7 @@ export function ReadinessCenter({
           </button>
           {history.map((h) => (
             <p key={h.revision}>
-              Revision {h.revision} · {h.action} · {h.actor_uid} ·{" "}
+              Revision {h.revision} · {h.action} · {person(h.actor_uid)} ·{" "}
               {h.created_at}
             </p>
           ))}
@@ -844,7 +884,8 @@ export function ReadinessCenter({
                 inspected bytes. Keep confidential documents outside listing
                 media.
               </p>
-              <Field labelClassName="block text-sm"
+              <Field
+                labelClassName="block text-sm"
                 label="Verified amenities (comma separated)"
                 value={draft.verifiedAmenities.join(",")}
                 onChange={(v) =>
@@ -895,7 +936,8 @@ export function ReadinessCenter({
                       "usagePermission",
                     ] as const
                   ).map((k) => (
-                    <Field labelClassName="block text-sm"
+                    <Field
+                      labelClassName="block text-sm"
                       key={k}
                       label={k}
                       value={m[k]}
@@ -991,7 +1033,8 @@ export function ReadinessCenter({
               </button>
             </div>
             <div className={box}>
-              <Field labelClassName="block text-sm"
+              <Field
+                labelClassName="block text-sm"
                 label="Channel name"
                 value={channel}
                 onChange={setChannel}
@@ -1039,7 +1082,8 @@ export function ReadinessCenter({
                     "confirmationReference",
                   ] as const
                 ).map((k) => (
-                  <Field labelClassName="block text-sm"
+                  <Field
+                    labelClassName="block text-sm"
                     key={k}
                     label={l.channel + " " + k}
                     value={l[k] ?? ""}
@@ -1064,7 +1108,8 @@ export function ReadinessCenter({
                     }
                   />
                 ))}
-                <Field labelClassName="block text-sm"
+                <Field
+                  labelClassName="block text-sm"
                   label={l.channel + " advertised amenities"}
                   value={l.amenities.join(",")}
                   onChange={(v) =>
@@ -1084,7 +1129,8 @@ export function ReadinessCenter({
                     )
                   }
                 />
-                <Field labelClassName="block text-sm"
+                <Field
+                  labelClassName="block text-sm"
                   label={l.channel + " required photo categories"}
                   value={l.requiredPhotos.join(",")}
                   onChange={(v) =>
@@ -1122,7 +1168,8 @@ export function ReadinessCenter({
                   Verified channel video support
                 </label>
                 {l.acceptsVideo && (
-                  <Field labelClassName="block text-sm"
+                  <Field
+                    labelClassName="block text-sm"
                     label="Video rule source URL"
                     value={l.videoRuleSource || ""}
                     onChange={(v) =>
@@ -1203,7 +1250,8 @@ export function ReadinessCenter({
                         state: u.state,
                       })),
                       businessDate(),
-                      "SYNTHETIC DEMO",
+                      "synthetic-gm",
+                      members,
                     ),
                   };
               const url = URL.createObjectURL(
@@ -1251,12 +1299,12 @@ export function ReadinessCenter({
               {u.assessment.alerts.map((a: any) => (
                 <p key={a.documentId}>
                   {a.reason} · {a.daysRemaining} days · Assigned:{" "}
-                  {a.responsibleUid}
+                  {person(a.responsibleUid)}
                 </p>
               ))}
               {u.assessment.overdueTasks.map((t: any) => (
                 <p key={t.id}>
-                  Overdue: {t.label} · {t.responsibleUid} · {t.dueOn}
+                  Overdue: {t.label} · {person(t.responsibleUid)} · {t.dueOn}
                 </p>
               ))}
               <p>
@@ -1273,12 +1321,91 @@ export function ReadinessCenter({
             accounts. They do not create accounts or increase the ten-user
             limit.
           </p>
-          <Select
+          {api && (
+            <button
+              className={button}
+              disabled={busy}
+              onClick={() =>
+                run(async () => {
+                  const latest = await api("/readiness");
+                  setSnapshot((prev: any) => ({
+                    ...prev,
+                    members: latest.members,
+                  }));
+                  setMember("");
+                  setMessage(
+                    "Team directory refreshed. Select an employee to continue.",
+                  );
+                })
+              }
+            >
+              Refresh team directory
+            </button>
+          )}
+          <MemberSelect
             label="Team member"
             value={member}
-            options={["", ...snapshot.members.map((m: any) => m.uid)]}
+            members={members}
             onChange={setMember}
           />
+          <p>
+            Changing a name does not change access or saved assignments. New
+            names appear in current views; previously downloaded reports remain
+            unchanged.
+          </p>
+          {selectedMember && (
+            <div className={box}>
+              <Field
+                label="Employee display name"
+                value={employeeName}
+                onChange={setEmployeeName}
+              />
+              <button
+                className={button}
+                disabled={
+                  busy ||
+                  !employeeName.trim() ||
+                  employeeName.trim() === selectedMember.displayName
+                }
+                onClick={() =>
+                  run(async () => {
+                    const name = employeeName.trim();
+                    if (
+                      name.length > 100 ||
+                      /[\u0000-\u001f\u007f-\u009f\u202a-\u202e\u2066-\u2069]/.test(
+                        name,
+                      )
+                    )
+                      throw Error(
+                        "Use a readable employee name of 1–100 characters.",
+                      );
+                    const updated = api
+                      ? (
+                          await api("/readiness/members/name", {
+                            uid: member,
+                            displayName: name,
+                            expectedDisplayName: selectedMember.displayName,
+                          })
+                        ).member
+                      : { ...selectedMember, displayName: name };
+                    setSnapshot((prev: any) => ({
+                      ...prev,
+                      members: prev.members.map((m: TeamMember) =>
+                        m.uid === updated.uid ? updated : m,
+                      ),
+                    }));
+                    setMessage(
+                      api
+                        ? "Employee name saved."
+                        : "Demo employee name saved for this session only.",
+                    );
+                  })
+                }
+              >
+                Save employee name
+              </button>
+            </div>
+          )}
           {(["compliance", "operations", "distribution"] as Capability[]).map(
             (c) => (
               <label className="block" key={c}>
@@ -1315,7 +1442,7 @@ export function ReadinessCenter({
           </button>
           {snapshot.grants.map((g: any) => (
             <p key={g.uid + g.capability}>
-              {g.uid} · {g.capability}
+              {person(g.uid)} · {g.capability}
             </p>
           ))}
         </div>

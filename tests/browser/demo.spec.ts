@@ -379,3 +379,130 @@ test("report center uses white paper, distinct date periods and isolated printab
     page.getByRole("button", { name: "Print / Save PDF", exact: true }),
   ).toBeDisabled();
 });
+
+test("employee names drive document and task selectors while account IDs stay internal", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await page
+    .getByRole("button", { name: "Compliance, Activation & OTA", exact: true })
+    .click();
+  await page
+    .getByRole("button", { name: "Team responsibilities", exact: true })
+    .click();
+  await page
+    .getByLabel("Team member", { exact: true })
+    .selectOption("synthetic-operations");
+  await page
+    .getByLabel("Employee display name", { exact: true })
+    .fill("Alex Demo");
+  await page
+    .getByRole("button", { name: "Save employee name", exact: true })
+    .click();
+  await expect(
+    page.getByText("Demo employee name saved for this session only.", {
+      exact: true,
+    }),
+  ).toBeVisible();
+  await page
+    .getByLabel("Team member", { exact: true })
+    .selectOption("synthetic-reservations");
+  await page
+    .getByLabel("Employee display name", { exact: true })
+    .fill("Alex Demo");
+  await page
+    .getByRole("button", { name: "Save employee name", exact: true })
+    .click();
+  const options = page
+    .getByLabel("Team member", { exact: true })
+    .locator("option");
+  await expect(options).toContainText([
+    "Select a team member",
+    "Demo General Manager",
+    "Alex Demo · Revenue Manager · Seat 2",
+    "Alex Demo · Read-Only Viewer · Seat 3",
+  ]);
+  await expect(options).not.toContainText([
+    "synthetic-gm",
+    "synthetic-reservations",
+    "synthetic-operations",
+  ]);
+  await page
+    .getByRole("button", { name: "PRO & Compliance Center", exact: true })
+    .click();
+  await page
+    .getByText("Jurisdiction rules and renewal reminders", { exact: true })
+    .click();
+  await page
+    .getByRole("button", { name: "Add requirement", exact: true })
+    .click();
+  await page
+    .getByLabel("Requirement name", { exact: true })
+    .fill("Synthetic permit");
+  await page
+    .getByRole("button", { name: "Save jurisdiction rules", exact: true })
+    .click();
+  await page
+    .getByRole("button", { name: "Add document record", exact: true })
+    .click();
+  await page
+    .getByLabel("Responsible employee", { exact: true })
+    .selectOption("synthetic-operations");
+  await expect(
+    page.getByLabel("Responsible employee", { exact: true }),
+  ).toHaveValue("synthetic-operations");
+  await page
+    .getByRole("button", { name: "Save compliance records", exact: true })
+    .click();
+  await expect(
+    page.getByLabel("Responsible employee", { exact: true }),
+  ).toHaveValue("synthetic-operations");
+  await page
+    .getByRole("button", { name: "Property Activation Center", exact: true })
+    .click();
+  await page
+    .getByRole("button", { name: "Add assigned task", exact: true })
+    .click();
+  await page
+    .getByLabel("Task", { exact: true })
+    .fill("Synthetic permit follow-up");
+  await page.getByLabel("Due date", { exact: true }).fill("2026-01-01");
+  await page
+    .getByLabel("Assigned employee", { exact: true })
+    .selectOption("synthetic-reservations");
+  await page
+    .getByRole("button", {
+      name: "Save readiness checks and tasks",
+      exact: true,
+    })
+    .click();
+  await expect(
+    page.getByLabel("Assigned employee", { exact: true }),
+  ).toHaveValue("synthetic-reservations");
+  await page
+    .getByRole("button", { name: "General Manager Briefing", exact: true })
+    .click();
+  await expect(
+    page.getByText(
+      "Overdue: Synthetic permit follow-up · Alex Demo · Revenue Manager · Seat 2 · 2026-01-01",
+      { exact: true },
+    ),
+  ).toBeVisible();
+  await expect(page.locator("body")).not.toContainText(
+    "synthetic-reservations",
+  );
+  await page.reload();
+  await page
+    .getByRole("button", { name: "Compliance, Activation & OTA", exact: true })
+    .click();
+  await page
+    .getByRole("button", { name: "Team responsibilities", exact: true })
+    .click();
+  await expect(
+    page.getByLabel("Team member", { exact: true }).locator("option"),
+  ).toContainText([
+    "Demo General Manager",
+    "Demo Reservations Lead",
+    "Demo Operations Lead",
+  ]);
+});

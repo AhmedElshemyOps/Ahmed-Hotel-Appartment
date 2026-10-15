@@ -21,6 +21,7 @@ Start with the [beginner app guide](guides/APP-GUIDE-AND-ROADMAP.md). For curren
 
 ## Work status and next steps
 
+- [Employee-name enhancement and acceptance checks](releases/EMPLOYEE-NAMES.md)
 - [Implementation progress](releases/IMPLEMENTATION-PROGRESS.md)
 - [Market acceptance](releases/market/acceptance.md)
 - [Cloud validation](releases/cloud/validation.md)

@@ -43,3 +43,7 @@ Retain existing minimal workspace, membership-read and audit-insert grants. Do n
 ## Pending before production acceptance
 
 Protected object-storage uploads, byte-level image inspection, antivirus scanning and signed download authorization are **not** implemented. This increment manages evidence/media references and declared metadata only. Do not paste bearer credentials or expiring secret tokens into evidence URLs. Reminders are computed in the app; external email/Calendar delivery for readiness tasks is not connected. Existing Google market-review exports do not automatically synchronize these new tasks. Real MFA/recovery tests, multi-client DB races, retention/deletion policy, backup restore and authorized legal-rule review remain pilot gates. Regulatory submissions, OTA publication and live price changes stay disabled.
+
+## Employee names
+
+Document/task assignees, team responsibilities and current readiness views use named company members. The GM manages display names in Team responsibilities after recent MFA. Apply migration 007 and grant SELECT/INSERT/UPDATE on member_profiles to the runtime role. See the [employee-name release and installation record](../../releases/EMPLOYEE-NAMES.md) for unknown/departed-member labels, snapshot history, validation and scope. Names are labels; account IDs and role/capability checks remain authoritative.
