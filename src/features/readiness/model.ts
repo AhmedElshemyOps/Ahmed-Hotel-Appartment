@@ -20,6 +20,14 @@ const link = z
       !new URL(v).password,
     "Use an HTTPS evidence reference without credentials",
   );
+const evidenceLink = z.union([
+  link,
+  z
+    .string()
+    .regex(
+      /^\/api\/files\/[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}\/download$/,
+    ),
+]);
 export const capability = z.enum(["compliance", "operations", "distribution"]);
 export type Capability = z.infer<typeof capability>;
 export const requirementSchema = z
@@ -44,7 +52,7 @@ export const documentSchema = z
     expiresOn: date,
     renewalOn: date,
     responsibleUid: text,
-    evidenceUrl: link,
+    evidenceUrl: evidenceLink,
     notes: z.string().max(3000),
     status: z.enum(["unverified", "verified", "rejected", "revoked"]),
     verifiedBy: z.string(),
@@ -70,7 +78,7 @@ export const mediaSchema = z
     id: text,
     kind: z.enum(["photo", "video"]),
     category: text,
-    evidenceUrl: link,
+    evidenceUrl: evidenceLink,
     width: z.number().int().min(1).max(50000),
     height: z.number().int().min(1).max(50000),
     bytes: z.number().int().positive().max(500000000),

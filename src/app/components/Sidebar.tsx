@@ -18,6 +18,7 @@ import {
 import { UserRole } from '../../shared/types';
 
 export type NavigationTab = 
+  | 'management'
   | 'dashboard'
   | 'apartments'
   | 'intelligence'
@@ -57,6 +58,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     badgeColor?: string;
     category?: string;
   }[] = [
+    { id: 'management', label: 'Management Centre', icon: ShieldAlert },
     { id: 'dashboard', label: 'Executive Dashboard', icon: LayoutDashboard },
     { id: 'intelligence', label: 'Property Intelligence', icon: Activity },
     { id: 'apartments', label: 'Apartments (40 Units)', icon: Building, badge: '40' },

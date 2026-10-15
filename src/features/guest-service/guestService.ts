@@ -1,5 +1,15 @@
-import { businessDate, nextBusinessDate } from "../../shared/dates/businessDate";
-export { businessDate, nextBusinessDate } from "../../shared/dates/businessDate";
+import {
+  DEFAULT_OPERATING_POLICY,
+  type OperatingPolicy,
+} from "../management-controls/model";
+import {
+  businessDate,
+  nextBusinessDate,
+} from "../../shared/dates/businessDate";
+export {
+  businessDate,
+  nextBusinessDate,
+} from "../../shared/dates/businessDate";
 import type { Reservation } from "../../shared/types";
 export type MessageTemplate = {
   id: string;
@@ -99,6 +109,7 @@ export function serviceTasks(
   reservations: Reservation[],
   settings: GuestService,
   now = new Date(),
+  policies: Record<string, OperatingPolicy> = {},
 ) {
   return reservations
     .filter((r) => r.status !== "Canceled")
@@ -108,15 +119,15 @@ export function serviceTasks(
         .map((rule) => {
           const date =
             rule.anchor === "arrival" ? r.checkInDate : r.checkOutDate;
-          // Initial operating policy: Dubai arrival 15:00/departure 11:00. These are policy deadlines, not verified guest times.
+          const policy = policies[r.unitId] || DEFAULT_OPERATING_POLICY;
           const dueAt = new Date(
             Date.parse(
               date +
-                (rule.anchor === "arrival"
-                  ? "T15:00:00+04:00"
-                  : "T11:00:00+04:00"),
+                "T" +
+                (rule.anchor === "arrival" ? policy.checkIn : policy.checkOut) +
+                ":00+04:00",
             ) +
-              rule.offsetHours * 3600000,
+              (policy.contactOffsets[rule.id] ?? rule.offsetHours) * 3600000,
           ).toISOString();
           const id = r.id + ":" + rule.id + ":" + date;
           const completed = settings.completed[id];

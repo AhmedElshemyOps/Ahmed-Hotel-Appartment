@@ -54,3 +54,7 @@ No Odoo accounting writes, live OTA publication, government submission or live r
 ## Find your way around
 
 Start at the [documentation index](docs/README.md), then read the [current folder guide](docs/reference/PROJECT-STRUCTURE.md). Run `npm run audit:structure` to check documentation links and browser/server boundaries.
+
+## Management controls development patch
+
+The Management Centre adds evidence priorities, apartment operating policies, saved period comparisons and guided staff access. Private upload code fails closed until private storage and a real scanner are configured. Cloud staging remains unprovisioned; see [setup and boundaries](docs/releases/MANAGEMENT-CONTROLS.md). Run the normal checks with `TEST_POSTGRES_URL` pointing only to a disposable local `ahq_test` database to include concurrent-seat and backup/restore rehearsals; CI supplies its own temporary PostgreSQL service.

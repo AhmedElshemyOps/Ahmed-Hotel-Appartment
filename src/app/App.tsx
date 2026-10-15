@@ -1,3 +1,4 @@
+import { ManagementCenter } from "../features/management-controls/ManagementCenter";
 import { analyzeSpecialists } from '../features/management/specialistAgents';
 /**
  * Ahmed Quality Ops — Hospitality AI Command Center
@@ -248,7 +249,9 @@ export default function App() {
 
         <main className="flex-1 overflow-y-auto">
           {currentTab === 'accounting' && <Suspense fallback={<p className="p-6">Loading accounting…</p>}><AccountingCenter apartments={activeApartments} role={currentRole}/></Suspense>}
-          {currentTab === 'readiness' && <Suspense fallback={<p className="p-6">Loading readiness…</p>}><ReadinessCenter apartments={activeApartments} role={currentRole}/></Suspense>}
+          {currentTab === 'management' && currentRole !== 'General Manager' && <p className="p-6">General Manager access is required for this workspace.</p>}
+          {currentTab === 'management' && currentRole === 'General Manager' && <ManagementCenter apartments={activeApartments} reservations={activeReservations} onNavigate={(area,unitId)=>{setSelectedApartmentId(unitId||null);setCurrentTab(area==='imports'?'import':area as NavigationTab);}}/>}
+          {currentTab === 'readiness' && <Suspense fallback={<p className="p-6">Loading readiness…</p>}><ReadinessCenter apartments={activeApartments} role={currentRole} initialUnitId={selectedApartmentId||undefined}/></Suspense>}
           {currentTab === 'market' && <Suspense fallback={<p className="p-6">Loading market intelligence…</p>}><MarketWorkspace apartments={activeApartments}/></Suspense>}
           {currentTab === 'intelligence' && <PropertyIntelligenceView apartments={activeApartments} reservations={activeReservations} transactions={activeTransactions} maintenance={activeMaintenance} complaints={activeComplaints} kpi={kpiSummary} start={dateInterval.start} end={dateInterval.end} mode={dataMode} />}
           {currentTab === 'dashboard' && (

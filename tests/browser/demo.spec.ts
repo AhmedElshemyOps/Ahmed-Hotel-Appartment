@@ -506,3 +506,135 @@ test("employee names drive document and task selectors while account IDs stay in
     "Demo Operations Lead",
   ]);
 });
+
+test("management centre combines evidence, per-property policies and immutable synthetic report versions", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await page
+    .getByRole("button", { name: "Management Centre", exact: true })
+    .click();
+  await expect(
+    page.getByRole("heading", {
+      name: "General Manager priority list",
+      exact: true,
+    }),
+  ).toBeVisible();
+  await expect(
+    page
+      .getByText("Responsible: Demo Operations Lead", { exact: false })
+      .first(),
+  ).toBeVisible();
+  await page
+    .getByRole("button", { name: "Inspect evidence", exact: true })
+    .first()
+    .click();
+  await expect(
+    page.getByRole("heading", {
+      name: "Source evidence — current recorded version",
+      exact: true,
+    }),
+  ).toBeVisible();
+  await page
+    .getByRole("button", { name: "Property settings", exact: true })
+    .click();
+  const units = await page
+    .getByLabel("Property apartment", { exact: true })
+    .locator("option")
+    .evaluateAll((options) =>
+      options.map((o) => (o as HTMLOptionElement).value),
+    );
+  await page.getByLabel("Check-in time", { exact: true }).fill("00:30");
+  await page
+    .getByLabel("Pre-arrival contact offset hours", { exact: true })
+    .fill("-2");
+  await page
+    .getByLabel("Operating preferences", { exact: true })
+    .fill("SYNTHETIC quiet arrival arrangement");
+  await page
+    .getByRole("button", { name: "Save property policy", exact: true })
+    .click();
+  await page
+    .getByLabel("Property apartment", { exact: true })
+    .selectOption(units[1]);
+  await expect(page.getByLabel("Check-in time", { exact: true })).toHaveValue(
+    "15:00",
+  );
+  await page
+    .getByLabel("Property apartment", { exact: true })
+    .selectOption(units[0]);
+  await expect(page.getByLabel("Check-in time", { exact: true })).toHaveValue(
+    "00:30",
+  );
+  await page
+    .getByRole("button", { name: "Report history", exact: true })
+    .click();
+  await page
+    .getByLabel("Report period", { exact: true })
+    .selectOption("MONTHLY");
+  await page
+    .getByLabel("Report version date", { exact: true })
+    .fill("2026-10-15");
+  await page
+    .getByRole("button", { name: "Save report version", exact: true })
+    .click();
+  await expect(
+    page.getByText(
+      "2026-10-01 to 2026-10-31 compared with 2026-09-01 to 2026-09-30",
+      { exact: true },
+    ),
+  ).toBeVisible();
+  await page
+    .getByRole("button", { name: "Save report version", exact: true })
+    .click();
+  await expect(page.getByRole("button", { name: /^Open MONTHLY/ })).toHaveCount(
+    2,
+  );
+  await page
+    .getByRole("button", { name: "Private files", exact: true })
+    .click();
+  await expect(
+    page.getByText(
+      "Synthetic demonstration: file storage and virus scanning are disconnected.",
+      { exact: false },
+    ),
+  ).toBeVisible();
+  await expect(
+    page.getByLabel("Upload private evidence", { exact: true }),
+  ).toHaveCount(0);
+  await page.getByRole("button", { name: "Staff access", exact: true }).click();
+  await expect(
+    page.getByRole("button", {
+      name: "Create private invitation",
+      exact: true,
+    }),
+  ).toHaveCount(0);
+  await page.getByRole("button", { name: "Staging", exact: true }).click();
+  await expect(
+    page.getByText("Not verified live.", { exact: false }),
+  ).toBeVisible();
+});
+test("invited account sign-up is available without leaking the invitation fragment in the URL", async ({
+  page,
+}) => {
+  await page.route("**/api/config", (route) =>
+    route.fulfill({
+      json: {
+        cloudMode: true,
+        firebase: {
+          apiKey: "test-api-key",
+          authDomain: "demo-test.firebaseapp.com",
+          projectId: "demo-test",
+        },
+      },
+    }),
+  );
+  await page.goto("/#invite=" + "S".repeat(43));
+  await expect(
+    page.getByRole("button", { name: "Create invited account", exact: true }),
+  ).toBeVisible();
+  await expect(page).toHaveURL(/\/$/);
+  await expect(
+    page.getByRole("button", { name: "Management Centre", exact: true }),
+  ).toHaveCount(0);
+});

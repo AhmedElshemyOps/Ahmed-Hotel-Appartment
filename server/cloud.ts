@@ -1,3 +1,5 @@
+import { uploadsRouter } from "./features/management-controls/uploads";
+import { managementRouter, invitationRouter } from "./features/management-controls/routes";
 import { lockedWorkspace, type Workspace } from "./db/workspace";
 export { lockedWorkspace, type Workspace } from "./db/workspace";
 import { companySession } from "./auth/session";
@@ -163,7 +165,10 @@ export function createCloudRouter(
     getAuth().verifyIdToken(token, true),
 ) {
   const router = Router();
+  router.use("/team", invitationRouter(pool, verify));
   router.use(companySession(pool, verify));
+  router.use("/management", managementRouter(pool));
+  router.use("/files", uploadsRouter(pool));
   router.use("/market/google", googleRouter(pool));
   router.use("/market", marketRouter(pool));
   router.use("/readiness", readinessRouter(pool));
@@ -256,6 +261,7 @@ export function createCloudRouter(
         const task = serviceTasks(
           data.reservations.map((r) => r.data),
           data.guestService,
+          new Date(), data.operatingSettings,
         ).find((t) => t.id === req.body.taskId);
         if (!task) throw new HttpError(404, "Active service task not found.");
         if (!data.guestService.completed[task.id]) {

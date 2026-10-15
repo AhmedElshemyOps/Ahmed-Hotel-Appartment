@@ -62,6 +62,7 @@ export function OperationsBoard({
     ? serviceTasks(
         data.reservations.map((r) => r.data),
         data.guestService || DEFAULT_GUEST_SERVICE,
+        new Date(), data.operatingSettings,
       )
         .filter((t) => {
           const dueDate = businessDate(new Date(t.dueAt));
