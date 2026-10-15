@@ -1,3 +1,4 @@
+import { memberName, type TeamMember } from "../../shared/team/members";
 import { assess } from "./engine";
 import type { ReadinessState } from "./model";
 const escape = (v: unknown) =>
@@ -17,8 +18,9 @@ export function readinessReport(
   }[],
   today: string,
   generatedBy: string,
+  members: TeamMember[] = [],
 ) {
-  return `<!doctype html><html lang="en"><meta charset="utf-8"><title>Property readiness review</title><style>body{font:16px system-ui;max-width:1000px;margin:40px auto;padding:20px;color:#172033}article{border:1px solid #bcc7d5;border-radius:8px;padding:20px;margin:20px 0}h1,h2{color:#075985}li{margin:6px 0}@media print{article{break-inside:avoid}}</style><h1>Ahmed Quality Ops — Property readiness review</h1><p>INTERNAL MANAGEMENT DRAFT · ${escape(today)} · Prepared by ${escape(generatedBy)}</p><p>Based on saved company records. This report does not establish government approval or live OTA publication. No lost revenue or guaranteed performance is inferred. Evidence references identify internal apartment revisions; confidential document URLs and notes are excluded.</p>${units
+  return `<!doctype html><html lang="en"><meta charset="utf-8"><title>Property readiness review</title><style>body{font:16px system-ui;max-width:1000px;margin:40px auto;padding:20px;color:#172033}article{border:1px solid #bcc7d5;border-radius:8px;padding:20px;margin:20px 0}h1,h2{color:#075985}li{margin:6px 0}@media print{article{break-inside:avoid}}</style><h1>Ahmed Quality Ops — Property readiness review</h1><p>INTERNAL MANAGEMENT DRAFT · ${escape(today)} · Prepared by ${escape(memberName(members, generatedBy))}</p><p>Based on saved company records. This report does not establish government approval or live OTA publication. No lost revenue or guaranteed performance is inferred. Evidence references identify internal apartment revisions; confidential document URLs and notes are excluded.</p>${units
     .map((u) => {
       const a = assess(
         {
@@ -40,7 +42,7 @@ export function readinessReport(
         )
         .join(
           "",
-        )}<h3>Renewal alerts</h3><ul>${a.alerts.map((v) => `<li>${escape(v.reason)} · document ${escape(v.documentId)} · ${v.daysRemaining} days remaining · assigned ${escape(v.responsibleUid)}</li>`).join("") || "<li>No current alerts in recorded documents. Missing documents still block legal readiness.</li>"}</ul><h3>Overdue responsibilities</h3><ul>${a.overdueTasks.map((t) => `<li>${escape(t.label)} · ${escape(t.dueOn)} · ${escape(t.responsibleUid)}</li>`).join("") || "<li>No overdue tasks in recorded data.</li>"}</ul><h3>Channel readiness</h3><ul>${u.state.listings.map((l) => `<li>${escape(l.channel)}: ${escape(l.status)} · recorded review ${escape(l.reviewedBy || "none")}</li>`).join("") || "<li>No channel checklist recorded.</li>"}</ul></article>`;
+        )}<h3>Renewal alerts</h3><ul>${a.alerts.map((v) => `<li>${escape(v.reason)} · document ${escape(v.documentId)} · ${v.daysRemaining} days remaining · assigned ${escape(memberName(members, v.responsibleUid))}</li>`).join("") || "<li>No current alerts in recorded documents. Missing documents still block legal readiness.</li>"}</ul><h3>Overdue responsibilities</h3><ul>${a.overdueTasks.map((t) => `<li>${escape(t.label)} · ${escape(t.dueOn)} · ${escape(memberName(members, t.responsibleUid))}</li>`).join("") || "<li>No overdue tasks in recorded data.</li>"}</ul><h3>Channel readiness</h3><ul>${u.state.listings.map((l) => `<li>${escape(l.channel)}: ${escape(l.status)} · recorded review ${escape(l.reviewedBy ? memberName(members, l.reviewedBy) : "No reviewer")}</li>`).join("") || "<li>No channel checklist recorded.</li>"}</ul></article>`;
     })
     .join("")}</html>`;
 }

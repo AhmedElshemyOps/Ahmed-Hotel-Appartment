@@ -1,3 +1,4 @@
+import { companyMembers } from "../../db/members";
 import { randomUUID } from "node:crypto";
 import { readinessReport } from "../../../src/features/readiness/report";
 import {
@@ -117,12 +118,7 @@ export function readinessRouter(pool: Pool) {
                 assessment: assess(redact(state, caps), businessDate()),
               };
             }),
-            members: (
-              await db.query(
-                "SELECT uid,role FROM memberships WHERE organization_id=$1",
-                [a.organization_id],
-              )
-            ).rows,
+            members: await companyMembers(db, a.organization_id),
             grants:
               a.role === "General Manager"
                 ? (
@@ -163,7 +159,12 @@ export function readinessRouter(pool: Pool) {
             };
           });
           const id = randomUUID(),
-            html = readinessReport(units, businessDate(), a.uid);
+            html = readinessReport(
+              units,
+              businessDate(),
+              a.uid,
+              await companyMembers(db, a.organization_id),
+            );
           await db.query(
             "INSERT INTO readiness_reports(id,organization_id,actor_uid,source_revisions,html) VALUES($1,$2,$3,$4,$5)",
             [
@@ -179,6 +180,83 @@ export function readinessRouter(pool: Pool) {
             [a.organization_id, a.uid, id, { units: units.length }],
           );
           return { id, html };
+        }),
+      );
+    }),
+  );
+  router.post(
+    "/members/name",
+    route(async (req, res) => {
+      gm(res);
+      const body = z
+        .object({
+          uid: z.string().min(1).max(180),
+          displayName: z
+            .string()
+            .trim()
+            .min(1)
+            .max(100)
+            .refine(
+              (v) =>
+                !/[\u0000-\u001f\u007f-\u009f\u202a-\u202e\u2066-\u2069]/.test(
+                  v,
+                ),
+              "Use a readable employee name without control characters.",
+            ),
+          expectedDisplayName: z.string().max(100),
+        })
+        .strict()
+        .parse(req.body);
+      const a = res.locals.actor as Actor;
+      res.json(
+        await transaction(pool, async (db) => {
+          await access(db, a);
+          const target = (
+            await db.query(
+              "SELECT uid FROM memberships WHERE organization_id=$1 AND uid=$2",
+              [a.organization_id, body.uid],
+            )
+          ).rows[0];
+          if (!target)
+            throw new HttpError(404, "Team member not found in your company.");
+          const current = (await companyMembers(db, a.organization_id)).find(
+            (m) => m.uid === body.uid,
+          )!;
+          if (current.displayName !== body.expectedDisplayName)
+            throw new HttpError(
+              409,
+              "This employee name changed. Refresh the team directory before saving again.",
+            );
+          const saved = await db.query(
+            `INSERT INTO member_profiles(organization_id,uid,display_name,updated_by) VALUES($1,$2,$3,$4)
+          ON CONFLICT(organization_id,uid) DO UPDATE SET display_name=EXCLUDED.display_name, updated_by=EXCLUDED.updated_by, updated_at=now()
+          WHERE member_profiles.display_name=$5 RETURNING uid`,
+            [
+              a.organization_id,
+              body.uid,
+              body.displayName,
+              a.uid,
+              body.expectedDisplayName,
+            ],
+          );
+          if (!saved.rows.length)
+            throw new HttpError(
+              409,
+              "This employee name changed. Refresh the team directory before saving again.",
+            );
+          await db.query(
+            "INSERT INTO audit_events(organization_id,actor_uid,action,target,details) VALUES($1,$2,'member.name',$3,$4)",
+            [
+              a.organization_id,
+              a.uid,
+              body.uid,
+              {
+                previousName: current.displayName,
+                displayName: body.displayName,
+              },
+            ],
+          );
+          return { member: { ...current, displayName: body.displayName } };
         }),
       );
     }),
