@@ -5,16 +5,12 @@ import { PGlite } from "@electric-sql/pglite";
 import type { Pool } from "pg";
 import { randomUUID } from "node:crypto";
 import express from "express";
-import {
-  commitBatch,
-  createCloudRouter,
-  HttpError,
-  lockedWorkspace,
-  type Actor,
-} from "../server/cloud";
-import { applyReservationEvent, verifyWebhook } from "../server/integration";
+import { commitBatch, createCloudRouter } from "../server/cloud";
+import { HttpError, type Actor } from "../server/auth/permissions";
+import { lockedWorkspace } from "../server/db/workspace";
+import { applyReservationEvent, verifyWebhook } from "../server/integrations/pms/webhook";
 import { createHmac } from "node:crypto";
-import { previewPms, type Mapping } from "../server/pms";
+import { previewPms, type Mapping } from "../server/integrations/pms/import";
 
 export async function fixture() {
   const db = new PGlite();

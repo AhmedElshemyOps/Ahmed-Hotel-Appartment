@@ -1,4 +1,4 @@
-import { readinessReport } from "../src/readiness/report";
+import { readinessReport } from "../src/features/readiness/report";
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import express from "express";
@@ -6,11 +6,12 @@ import {
   initialReadiness,
   emptyListing,
   stateSchema,
-} from "../src/readiness/model";
-import { assess, listingIssues } from "../src/readiness/engine";
+} from "../src/features/readiness/model";
+import { assess, listingIssues } from "../src/features/readiness/engine";
 import { marketFixture } from "./helpers/market";
-import { createCloudRouter, HttpError } from "../server/cloud";
-import { businessDate } from "../src/services/guestService";
+import { createCloudRouter } from "../server/cloud";
+import { HttpError } from "../server/auth/permissions";
+import { businessDate } from "../src/features/guest-service/guestService";
 function ready() {
   const s = initialReadiness();
   s.rulesReviewed = true;

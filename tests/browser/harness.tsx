@@ -1,13 +1,13 @@
 // Synthetic UI fixture served only by Vite's local test server, never included in dist.
 import React, { useState } from "react";
 import { createRoot } from "react-dom/client";
-import { CloudRevenue } from "../../src/cloud/CloudApp";
-import { OperationsBoard } from "../../src/cloud/OperationsBoard";
+import { CloudRevenue } from "../../src/app/CloudApp";
+import { OperationsBoard } from "../../src/features/operations/OperationsBoard";
 import {
   DEFAULT_GUEST_SERVICE,
   nextBusinessDate,
-} from "../../src/services/guestService";
-import { DEFAULT_CHANNELS } from "../../src/services/distribution";
+} from "../../src/features/guest-service/guestService";
+import { DEFAULT_CHANNELS } from "../../src/features/revenue/distribution";
 import "../../src/index.css";
 const tomorrow = nextBusinessDate();
 function Harness() {

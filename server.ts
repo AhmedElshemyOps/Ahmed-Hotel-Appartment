@@ -5,8 +5,8 @@ import path from "path";
 import { fileURLToPath } from "node:url";
 import { rateLimit } from "express-rate-limit";
 import { cloudPool, createCloudRouter, HttpError } from "./server/cloud";
-import { reservationWebhook } from "./server/integration";
-import { googleCallback } from "./server/market/google";
+import { reservationWebhook } from "./server/integrations/pms/webhook";
+import { googleCallback } from "./server/integrations/google/routes";
 import { GoogleGenAI } from "@google/genai";
 
 dotenv.config();

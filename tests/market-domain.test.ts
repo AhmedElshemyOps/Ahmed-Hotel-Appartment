@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { marketDemo } from "../src/market/demo";
+import { marketDemo } from "../src/features/market/demo";
 import {
   analyzeMarket,
   benchmark,
@@ -8,9 +8,9 @@ import {
   quantile,
   managementAnswer,
   scenario,
-} from "../src/market/engine";
-import { offerSchema, addDays } from "../src/market/model";
-import { marketReportHtml } from "../src/market/report";
+} from "../src/features/market/engine";
+import { offerSchema, addDays } from "../src/features/market/model";
+import { marketReportHtml } from "../src/features/market/report";
 import { apartments, queryFor } from "./helpers/market";
 test("integrated demo contains forty clearly synthetic apartments with dated, reproducible evidence", () => {
   const d = marketDemo(apartments);
@@ -198,7 +198,7 @@ test("reports escape hostile listing text and retain synthetic and price-basis d
 });
 
 test("map markers prefer eligible current observations over stale history and deduplicate physical units", async () => {
-  const { mapRepresentatives } = await import("../src/market/engine");
+  const { mapRepresentatives } = await import("../src/features/market/engine");
   const d = marketDemo(apartments),
     result = analyzeMarket(d, queryFor())[0],
     markers = mapRepresentatives(result.matches);

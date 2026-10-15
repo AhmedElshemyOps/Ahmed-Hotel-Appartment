@@ -1,16 +1,17 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import express from "express";
-import { packetSchema, type AccountingDocument } from "../src/accounting/model";
-import { accountingDemo } from "../src/accounting/demo";
-import { financialAnalysis } from "../src/accounting/engine";
-import { parseAccountingCsv, CSV_COLUMNS } from "../server/accounting/csv";
+import { packetSchema, type AccountingDocument } from "../src/features/accounting/model";
+import { accountingDemo } from "../src/features/accounting/demo";
+import { financialAnalysis } from "../src/features/accounting/engine";
+import { parseAccountingCsv, CSV_COLUMNS } from "../server/features/accounting/csv";
 import {
   plannedOdooRead,
   collectReadOnly,
-} from "../server/accounting/adapters";
+} from "../server/integrations/accounting/adapters";
 import { marketFixture, apartments } from "./helpers/market";
-import { createCloudRouter, HttpError } from "../server/cloud";
+import { createCloudRouter } from "../server/cloud";
+import { HttpError } from "../server/auth/permissions";
 function docs() {
   const demo = accountingDemo(apartments.slice(0, 1));
   return demo.documents.map((d) => ({

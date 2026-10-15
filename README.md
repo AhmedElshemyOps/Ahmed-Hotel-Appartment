@@ -2,11 +2,11 @@
 
 Hospitality operations and management intelligence for serviced apartments and holiday homes. Built with React, TypeScript, Express, PostgreSQL and Firebase/Identity Platform.
 
-**Development status:** cloud operations and market intelligence are on main. The next development increment adds compliance/activation/OTA readiness and a disconnected accounting layer with reviewed CSV imports. It is not deployed. Read [the current progress record](docs/IMPLEMENTATION-PROGRESS.md) for exact boundaries and acceptance gates.
+**Development status:** GitHub main includes cloud operations, market intelligence, compliance/activation/OTA readiness, disconnected accounting and the redesigned Report Center. This development increment reorganises the source and documentation. Deployment has not been verified. Read [the current progress record](docs/releases/IMPLEMENTATION-PROGRESS.md) for exact boundaries and acceptance gates.
 
 ## Prepare a live presentation
 
-Use `npm run session:check` followed by `npm run session:demo`. The launcher forces a local-only synthetic demonstration and disables live Gemini calls. Follow [the session runbook](docs/session/LIVE-DEMONSTRATION.md) for the presentation route and recovery steps. Read [the unified app guide and roadmap](docs/APP-GUIDE-AND-ROADMAP.md) for the full beginner explanation.
+Use `npm run session:check` followed by `npm run session:demo`. The launcher forces a local-only synthetic demonstration and disables live Gemini calls. Follow [the session runbook](docs/session/LIVE-DEMONSTRATION.md) for the presentation route and recovery steps. Read [the unified app guide and roadmap](docs/guides/APP-GUIDE-AND-ROADMAP.md) for the full beginner explanation.
 
 ## Run a local synthetic demonstration
 
@@ -32,7 +32,7 @@ npm audit --audit-level=high
 
 ## Configure a cloud environment later
 
-Follow [hosting/configuration](docs/cloud/hosting.md), [market security](docs/market/data-security.md) and [the new module installation/security guide](docs/readiness/README.md). Apply all ordered migrations with a migration credential before starting the new application version:
+Follow [hosting/configuration](docs/reference/cloud/hosting.md), [market security](docs/reference/market/data-security.md) and [the new module installation/security guide](docs/reference/readiness/README.md). Apply all ordered migrations with a migration credential before starting the new application version:
 
 ```sh
 npm run migrate
@@ -42,11 +42,15 @@ This requires a securely configured `DATABASE_URL`. Do not put secrets in GitHub
 
 ## Guides
 
-- [Current feature completion matrix and next phases](docs/IMPLEMENTATION-PROGRESS.md)
-- [Compliance, activation, OTA and reporting guide](docs/readiness/README.md)
-- [Accounting/Odoo setup, CSV contract and financial methodology](docs/accounting/README.md)
-- [Reservations, distribution and guest-service integrations](docs/cloud/README.md)
-- [Geographic market intelligence](docs/market/README.md)
-- [Original readiness plan, retained as planning context](docs/property-readiness-compliance-ota-plan.md)
+- [Current feature completion matrix and next phases](docs/releases/IMPLEMENTATION-PROGRESS.md)
+- [Compliance, activation, OTA and reporting guide](docs/reference/readiness/README.md)
+- [Accounting/Odoo setup, CSV contract and financial methodology](docs/reference/accounting/README.md)
+- [Reservations, distribution and guest-service integrations](docs/reference/cloud/README.md)
+- [Geographic market intelligence](docs/reference/market/README.md)
+- [Original readiness plan, retained as planning context](docs/plans/property-readiness-compliance-ota-plan.md)
 
 No Odoo accounting writes, live OTA publication, government submission or live rental-rate publication is implemented. Odoo is deliberately disconnected until administrator approval and environment-specific acceptance. Deployment remains deferred by the owner.
+
+## Find your way around
+
+Start at the [documentation index](docs/README.md), then read the [current folder guide](docs/reference/PROJECT-STRUCTURE.md). Run `npm run audit:structure` to check documentation links and browser/server boundaries.

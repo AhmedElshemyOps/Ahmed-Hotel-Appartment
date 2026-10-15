@@ -12,12 +12,13 @@
     "lint": "tsc --noEmit",
     "test": "node --import tsx --test tests/*.test.ts",
     "test:browser": "playwright test",
-    "check": "npm run lint && npm test && npm run build && npm run test:production",
+    "check": "npm run audit:structure && npm run lint && npm test && npm run build && npm run test:production",
     "migrate": "node --import tsx scripts/migrate.ts",
     "test:production": "node --import tsx --test tests/production.smoke.ts",
     "market:worker": "node --import tsx scripts/market-worker.ts",
     "session:demo": "node --import tsx scripts/demo-session.ts",
-    "session:check": "node --import tsx scripts/session-check.ts"
+    "session:check": "node --import tsx scripts/session-check.ts",
+    "audit:structure": "node --import tsx scripts/check-structure.ts"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",
