@@ -1,0 +1,84 @@
+{
+  "competitors": [
+    {
+      "id": "synthetic-0-0-0-0",
+      "externalListingId": "synthetic-0-0-0-0",
+      "physicalKey": "synthetic-0-0-0",
+      "identityEvidence": "https://synthetic.invalid/identity/synthetic-0-0-0",
+      "sourceId": "20000000-0000-4000-8000-000000000001",
+      "propertyId": "10000000-0000-4000-8000-000000000001",
+      "title": "SYNTHETIC comparable 0BR 0",
+      "url": "https://synthetic.invalid/listing/synthetic-0-0-0-0",
+      "platform": "Airbnb (synthetic)",
+      "operatorName": "SYNTHETIC Operator 0",
+      "operatorEvidence": "https://synthetic.invalid/operators/0",
+      "location": {
+        "latitude": 24.4908,
+        "longitude": 54.6,
+        "accuracyMeters": 20,
+        "address": "Synthetic coordinate example — not an actual managed address",
+        "buildingName": "SYNTHETIC Competitor Tower 0",
+        "buildingReference": "synthetic-competitor-building-0",
+        "community": "Yas Island (synthetic positions)",
+        "district": "Yas Island",
+        "city": "Abu Dhabi",
+        "emirate": "Abu Dhabi",
+        "country": "AE",
+        "postalCode": null,
+        "status": "synthetic",
+        "provider": "Deterministic fixture",
+        "verifiedAt": null,
+        "evidenceUrl": null
+      },
+      "characteristics": {
+        "category": "entire_unit",
+        "rentalModel": "short_term",
+        "bedrooms": 0,
+        "bathrooms": 1,
+        "capacity": 2,
+        "areaSqm": 45,
+        "floor": 1,
+        "furnishing": "standard",
+        "condition": "good",
+        "view": "community",
+        "reviewScore": 8,
+        "reviewCount": 40,
+        "licenseStatus": "Synthetic — not a license claim",
+        "amenities": [
+          "parking",
+          "pool",
+          "gym",
+          "balcony"
+        ],
+        "accessibility": [],
+        "attractionDistances": []
+      }
+    }
+  ],
+  "offers": [
+    {
+      "id": "synthetic-0-0-0-0-0-0",
+      "observationId": "synthetic-0-0-0-0-0-0",
+      "listingId": "synthetic-0-0-0-0",
+      "sourceId": "20000000-0000-4000-8000-000000000001",
+      "propertyId": "10000000-0000-4000-8000-000000000001",
+      "checkIn": "2026-10-16",
+      "checkOut": "2026-10-17",
+      "guests": 2,
+      "available": true,
+      "minimumStay": 1,
+      "cancellation": "flexible",
+      "quoteContext": "public-web-AE-2-adults",
+      "currency": "AED",
+      "roomTotal": 500,
+      "cleaningFee": 40,
+      "serviceFee": 20,
+      "taxes": 28,
+      "guestTotal": 588,
+      "allFeesKnown": true,
+      "observedAt": "2026-10-15T06:30:59.904Z",
+      "verification": "synthetic",
+      "sourceUrl": "https://synthetic.invalid/listing/synthetic-0-0-0-0"
+    }
+  ]
+}

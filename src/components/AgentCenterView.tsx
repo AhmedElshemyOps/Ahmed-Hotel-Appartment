@@ -1,3 +1,4 @@
+import type { SpecialistInsight } from '../services/specialistAgents';
 import React, { useState } from 'react';
 import {
   Bot,
@@ -31,6 +32,7 @@ import { AGENT_ROSTER } from '../data/agentEngine';
 import { formatAED } from '../data/kpiEngine';
 
 interface AgentCenterViewProps {
+  specialistInsights?: SpecialistInsight[];
   recommendations: AgentRecommendation[];
   coordinationCases: AgentCoordinationCase[];
   onUpdateRecommendationStatus: (id: string, newStatus: RecommendationApprovalStatus) => void;
@@ -42,6 +44,7 @@ export const AgentCenterView: React.FC<AgentCenterViewProps> = ({
   coordinationCases,
   onUpdateRecommendationStatus,
   currentRole,
+  specialistInsights = [],
 }) => {
   const [selectedAgentRole, setSelectedAgentRole] = useState<AgentRole | 'ALL'>('ALL');
   const [expandedCaseId, setExpandedCaseId] = useState<string | null>(coordinationCases[0]?.id || null);
@@ -114,6 +117,19 @@ export const AgentCenterView: React.FC<AgentCenterViewProps> = ({
         </div>
       </div>
 
+      <section className="rounded-xl border border-sky-900 bg-slate-900/70 p-4 space-y-3">
+        <h3 className="text-sm font-bold text-white">Eight Specialist Agents — Evidence-Based Findings</h3>
+        <p className="text-xs text-slate-400">Advisory only. Figures derive from the selected application dataset; findings are not audited or automatically executed.</p>
+        {specialistInsights.length === 0 ? <p className="text-xs text-slate-400">No findings for the selected records.</p> : specialistInsights.map(item => (
+          <article key={item.id} className="rounded-lg border border-slate-700 bg-slate-950/50 p-3 space-y-1">
+            <div className="flex items-center justify-between gap-2"><strong className="text-sm text-white">{item.title}</strong><span className="text-[10px] text-sky-300">{item.agent} · {item.priority}</span></div>
+            <p className="text-xs text-slate-300">{item.explanation}</p>
+            <p className="text-xs text-amber-300">Proposed (approval required): {item.proposedAction}</p>
+            <p className="text-[11px] text-slate-400">Evidence: {item.evidence.length ? item.evidence.slice(0,8).map(e=>e.kind+':'+e.id).join(', ') : 'No linked source records'}{item.evidence.length>8?' + more':''}</p>
+            {item.limitations.map((lim,i)=><p key={i} className="text-[11px] text-slate-500">Limitation: {lim}</p>)}
+          </article>
+        ))}
+      </section>
       {/* 11 AGENT SELECTOR ROSTER CAROUSEL/GRID */}
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2.5">
         <button

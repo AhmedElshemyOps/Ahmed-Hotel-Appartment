@@ -1,0 +1,45 @@
+# Review template only. Replace every REPLACE value before any approved deployment.
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: ahmed-quality-ops
+spec:
+  template:
+    metadata:
+      annotations:
+        autoscaling.knative.dev/maxScale: "2"
+        run.googleapis.com/cloudsql-instances: REPLACE_PROJECT:me-central1:REPLACE_SQL_INSTANCE
+    spec:
+      serviceAccountName: REPLACE_RUNTIME_SERVICE_ACCOUNT
+      containerConcurrency: 20
+      containers:
+        - image: REPLACE_REGISTRY_IMAGE_DIGEST
+          ports:
+            - containerPort: 8080
+          resources:
+            limits:
+              cpu: "1"
+              memory: 512Mi
+          env:
+            - name: APP_MODE
+              value: cloud
+            - name: NODE_ENV
+              value: production
+            - name: GOOGLE_CLOUD_PROJECT
+              value: REPLACE_PROJECT
+            - name: FIREBASE_AUTH_DOMAIN
+              value: REPLACE_PROJECT.firebaseapp.com
+            - name: FIREBASE_WEB_API_KEY
+              value: REPLACE_FIREBASE_PUBLIC_WEB_KEY
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: ahq-database-url
+                  key: latest
+          startupProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+            initialDelaySeconds: 2
+            periodSeconds: 5
+            failureThreshold: 10
