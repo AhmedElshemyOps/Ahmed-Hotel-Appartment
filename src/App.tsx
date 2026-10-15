@@ -24,7 +24,6 @@ import {
 import { generateSimulationDataset } from './data/simulationEngine';
 import { calculatePropertyKPISummary } from './data/kpiEngine';
 import { generateAgentRecommendations } from './data/agentEngine';
-import { getStoredRealPropertyData, saveRealPropertyData } from './data/realDataManager';
 
 import { Header } from './components/Header';
 import { Sidebar, NavigationTab } from './components/Sidebar';
@@ -38,13 +37,12 @@ import { FinancialView } from './components/FinancialView';
 import { AgentCenterView } from './components/AgentCenterView';
 import { SimulationLabView } from './components/SimulationLabView';
 import { ReportsView } from './components/ReportsView';
-import { DataImportView } from './components/DataImportView';
 import { SettingsView } from './components/SettingsView';
 import { AiManagerChat } from './components/AiManagerChat';
 
 export default function App() {
   // Global Application State
-  const [dataMode, setDataMode] = useState<DataOperatingMode>('SIMULATION');
+  const dataMode: DataOperatingMode = 'SIMULATION';
   const [currentRole, setCurrentRole] = useState<UserRole>('General Manager');
   const [currentTab, setCurrentTab] = useState<NavigationTab>('dashboard');
   const [simulationSeed, setSimulationSeed] = useState<number>(4242);
@@ -97,56 +95,27 @@ export default function App() {
     return generateSimulationDataset(simulationSeed);
   }, [simulationSeed]);
 
-  // Mode B: Real Property Data
-  const [realData, setRealData] = useState(() => getStoredRealPropertyData());
-
   // Dynamic Apartment Inventory Management (Add / Delete)
   const [addedSimApartments, setAddedSimApartments] = useState<Apartment[]>([]);
   const [deletedSimApartmentIds, setDeletedSimApartmentIds] = useState<string[]>([]);
 
-  // Active dataset based on DataOperatingMode
+  // Demo records never share persistence or mutation handlers with the cloud workspace.
   const activeApartments = useMemo(() => {
-    if (dataMode === 'SIMULATION') {
-      const deletedSet = new Set(deletedSimApartmentIds);
-      const base = demoData.apartments.filter(a => !deletedSet.has(a.id));
-      const added = addedSimApartments.filter(a => !deletedSet.has(a.id));
-      return [...base, ...added];
-    } else {
-      return realData.apartments;
-    }
-  }, [dataMode, demoData.apartments, deletedSimApartmentIds, addedSimApartments, realData.apartments]);
-
-  const handleAddApartment = (newApartment: Apartment) => {
-    if (dataMode === 'SIMULATION') {
-      setAddedSimApartments(prev => [...prev, newApartment]);
-    } else {
-      const updatedApts = [...realData.apartments, newApartment];
-      const nextData = { ...realData, apartments: updatedApts };
-      setRealData(nextData);
-      saveRealPropertyData(nextData);
-    }
+    const deletedSet = new Set(deletedSimApartmentIds);
+    return [...demoData.apartments, ...addedSimApartments].filter(a => !deletedSet.has(a.id));
+  }, [demoData.apartments, deletedSimApartmentIds, addedSimApartments]);
+  const handleAddApartment = (apartment: Apartment) => setAddedSimApartments(prev => [...prev, apartment]);
+  const handleDeleteApartment = (id: string) => {
+    setDeletedSimApartmentIds(prev => [...prev, id]);
+    setAddedSimApartments(prev => prev.filter(a => a.id !== id));
+    if (selectedApartmentId === id) setSelectedApartmentId(null);
   };
-
-  const handleDeleteApartment = (apartmentId: string) => {
-    if (dataMode === 'SIMULATION') {
-      setDeletedSimApartmentIds(prev => [...prev, apartmentId]);
-      setAddedSimApartments(prev => prev.filter(a => a.id !== apartmentId));
-    } else {
-      const updatedApts = realData.apartments.filter(a => a.id !== apartmentId);
-      const nextData = { ...realData, apartments: updatedApts };
-      setRealData(nextData);
-      saveRealPropertyData(nextData);
-    }
-    if (selectedApartmentId === apartmentId) {
-      setSelectedApartmentId(null);
-    }
-  };
-  const activeReservations = dataMode === 'SIMULATION' ? demoData.reservations : realData.reservations;
-  const activeMaintenance = dataMode === 'SIMULATION' ? demoData.maintenanceOrders : realData.maintenanceOrders;
-  const activeHousekeeping = dataMode === 'SIMULATION' ? demoData.housekeepingTasks : [];
-  const activeComplaints = dataMode === 'SIMULATION' ? demoData.complaints : realData.complaints;
-  const activeUtilities = dataMode === 'SIMULATION' ? demoData.utilityRecords : [];
-  const activeTransactions = dataMode === 'SIMULATION' ? demoData.transactions : realData.transactions;
+  const activeReservations = demoData.reservations;
+  const activeMaintenance = demoData.maintenanceOrders;
+  const activeHousekeeping = demoData.housekeepingTasks;
+  const activeComplaints = demoData.complaints;
+  const activeUtilities = demoData.utilityRecords;
+  const activeTransactions = demoData.transactions;
 
   // Date Boundary resolver
   const dateInterval = useMemo(() => {
@@ -239,38 +208,6 @@ export default function App() {
     );
   };
 
-  // Real Data Import Commit Handler
-  const handleCommitImport = (job: ImportJobRecord, newReservations: Reservation[]) => {
-    const updatedReservations = [...realData.reservations, ...newReservations];
-    const updatedHistory = [job, ...realData.importHistory];
-
-    const nextData = {
-      ...realData,
-      reservations: updatedReservations,
-      importHistory: updatedHistory,
-    };
-
-    setRealData(nextData);
-    saveRealPropertyData(nextData);
-  };
-
-  // Rollback import job
-  const handleRollbackImport = (jobId: string) => {
-    const job = realData.importHistory.find(j => j.id === jobId);
-    if (!job) return;
-
-    const updatedHistory = realData.importHistory.map(j =>
-      j.id === jobId ? { ...j, status: 'Rolled Back' as const } : j
-    );
-    // In this implementation, we mark as rolled back
-    const nextData = {
-      ...realData,
-      importHistory: updatedHistory,
-    };
-    setRealData(nextData);
-    saveRealPropertyData(nextData);
-  };
-
   // Counts for sidebar badges
   const pendingApprovalsCount = recommendations.filter(
     r => r.approvalStatus === 'Pending' || r.approvalStatus === 'Under Review'
@@ -287,7 +224,7 @@ export default function App() {
         currentRole={currentRole}
         onRoleChange={setCurrentRole}
         dataMode={dataMode}
-        onDataModeChange={setDataMode}
+        onDataModeChange={(mode) => { if (mode !== 'SIMULATION') alert('This is a demo workspace. Real data requires the authenticated cloud workspace.'); }}
         onOpenAiChat={() => setIsAiChatOpen(true)}
         onResetDemoData={() => setSimulationSeed(s => s + 1)}
         isLiveMode={isLiveMode}
@@ -369,6 +306,7 @@ export default function App() {
               kpi={kpiSummary}
               reservations={activeReservations}
               apartments={activeApartments}
+              start={dateInterval.start} end={dateInterval.end}
             />
           )}
 
@@ -416,16 +354,7 @@ export default function App() {
             />
           )}
 
-          {currentTab === 'import' && (
-            <DataImportView
-              realApartments={realData.apartments}
-              importHistory={realData.importHistory}
-              onCommitImport={handleCommitImport}
-              onRollbackImport={handleRollbackImport}
-              onSwitchToRealDataMode={() => setDataMode('REAL_PROPERTY')}
-            />
-          )}
-
+          {currentTab === 'import' && <div className="p-6 text-slate-300">PMS file updates require the authenticated cloud workspace. Do not upload real guest records into this demo.</div>}
           {currentTab === 'settings' && (
             <SettingsView
               currentRole={currentRole}

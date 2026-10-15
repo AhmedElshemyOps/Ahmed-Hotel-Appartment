@@ -15,7 +15,7 @@ export type ApartmentStatus =
 
 export type BookingStatus = 'Confirmed' | 'In-House' | 'Completed' | 'Canceled';
 
-export type BookingChannel = 'Direct Web' | 'Booking.com' | 'Airbnb' | 'Expedia' | 'Corporate Contract';
+export type BookingChannel = string;
 
 export type GuestCategory = 'Corporate' | 'Leisure' | 'Extended Stay' | 'VIP';
 
