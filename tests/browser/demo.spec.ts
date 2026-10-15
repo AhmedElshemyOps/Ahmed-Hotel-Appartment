@@ -94,3 +94,95 @@ test("distribution directory adds a new channel to the revenue matrix", async ({
     page.getByRole("cell", { name: "TripAdvisor", exact: true }),
   ).toBeVisible();
 });
+test("integrated forty-unit market demo supports matching, guarded approvals, map and report export", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await page
+    .getByRole("button", {
+      name: "Geographic Market Intelligence",
+      exact: true,
+    })
+    .click();
+  await expect(
+    page.getByRole("heading", {
+      name: "Geographic Market & Revenue Intelligence",
+    }),
+  ).toBeVisible();
+  await expect(page.getByText(/40 synthetic apartments/)).toBeVisible();
+  await page
+    .getByRole("button", { name: "Analyze market prices", exact: true })
+    .click();
+  await page
+    .getByRole("button", { name: "Forward pricing", exact: true })
+    .click();
+  await expect(
+    page.getByRole("columnheader", {
+      name: "Market guest-night median",
+      exact: true,
+    }),
+  ).toBeVisible();
+  await page
+    .getByRole("button", { name: "Save for GM review" })
+    .first()
+    .click();
+  await page
+    .getByLabel("Management reason", { exact: true })
+    .fill("Reviewed matching evidence and owner constraints");
+  await page
+    .getByLabel("Approved room-rate override (optional)")
+    .fill("100000");
+  page.once("dialog", (dialog) => dialog.accept());
+  await page
+    .getByRole("button", { name: "Approve internal proposal", exact: true })
+    .click();
+  await expect(page.getByRole("alert")).toContainText("guardrails");
+  await page.getByLabel("Approved room-rate override (optional)").fill("");
+  page.once("dialog", (dialog) => dialog.accept());
+  await page
+    .getByRole("button", { name: "Approve internal proposal", exact: true })
+    .click();
+  await expect(page.getByText(/Proposed room rate.*approved/)).toBeVisible();
+  await page
+    .getByRole("button", { name: "Geographic map", exact: true })
+    .click();
+  await expect(
+    page.getByRole("region", { name: "Interactive geographic market map" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Zoom in", exact: true }),
+  ).toBeVisible();
+  await page
+    .getByRole("button", { name: "Comparable evidence", exact: true })
+    .click();
+  await expect(
+    page.getByRole("heading", {
+      name: "Why each observation was included or excluded",
+    }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("cell").filter({ hasText: "SYNTHETIC Operator 0" }).first(),
+  ).toBeVisible();
+  await page.getByRole("button", { name: "Reports", exact: true }).click();
+  const downloaded = page.waitForEvent("download");
+  await page
+    .getByRole("button", {
+      name: "Prepare report snapshot and download",
+      exact: true,
+    })
+    .click();
+  const file = await downloaded;
+  expect(file.suggestedFilename()).toMatch(/market-review\.html$/);
+  await page
+    .getByRole("combobox", { name: "Geographic scope", exact: true })
+    .selectOption("building");
+  await page
+    .getByRole("button", { name: "Analyze market prices", exact: true })
+    .click();
+  await page
+    .getByRole("button", { name: "Forward pricing", exact: true })
+    .click();
+  await expect(
+    page.getByRole("button", { name: "Save for GM review" }),
+  ).toHaveCount(0);
+});

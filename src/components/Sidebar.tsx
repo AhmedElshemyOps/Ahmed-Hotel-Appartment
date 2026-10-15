@@ -21,6 +21,7 @@ export type NavigationTab =
   | 'dashboard'
   | 'apartments'
   | 'intelligence'
+  | 'market'
   | 'reservations'
   | 'operations'
   | 'revenue'
@@ -59,6 +60,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     { id: 'apartments', label: 'Apartments (40 Units)', icon: Building, badge: '40' },
     { id: 'reservations', label: 'Reservations Ledger', icon: CalendarCheck2 },
     { id: 'operations', label: 'Operations & Facilities', icon: Wrench, badge: openCasesCount > 0 ? `${openCasesCount} Open` : undefined, badgeColor: 'bg-rose-950 text-rose-300 border-rose-800' },
+    { id: 'market', label: 'Geographic Market Intelligence', icon: TrendingUp },
     { id: 'revenue', label: 'Revenue Intelligence', icon: TrendingUp },
     { id: 'financial', label: 'Financial Intelligence', icon: DollarSign },
     { id: 'agents', label: 'AI Agent Center', icon: Bot, badge: pendingApprovalsCount > 0 ? `${pendingApprovalsCount} Req` : undefined, badgeColor: 'bg-indigo-950 text-indigo-300 border-indigo-800' },

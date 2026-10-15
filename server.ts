@@ -6,6 +6,7 @@ import { fileURLToPath } from "node:url";
 import { rateLimit } from "express-rate-limit";
 import { cloudPool, createCloudRouter, HttpError } from "./server/cloud";
 import { reservationWebhook } from "./server/integration";
+import { googleCallback } from "./server/market/google";
 import { GoogleGenAI } from "@google/genai";
 
 dotenv.config();
@@ -14,6 +15,9 @@ const app = express();
 const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
 
 const cloudMode = process.env.APP_MODE === "cloud";
+const HOST =
+  process.env.APP_HOST ||
+  (process.env.NODE_ENV === "production" ? "0.0.0.0" : "127.0.0.1");
 if (process.env.NODE_ENV === "production" && !cloudMode)
   throw Error("Production requires APP_MODE=cloud; demo hosting is disabled.");
 app.disable("x-powered-by");
@@ -68,6 +72,11 @@ app.get("/api/config", (_req, res) =>
 );
 if (cloudMode) {
   const pool = cloudPool();
+  app.get(
+    "/integrations/google/callback",
+    rateLimit({ windowMs: 60000, limit: 30 }),
+    googleCallback(pool),
+  );
   app.post(
     "/integrations/reservations",
     rateLimit({ windowMs: 60000, limit: 60 }),
@@ -241,23 +250,21 @@ async function startServer() {
             : error.type === "entity.parse.failed"
               ? 400
               : 500;
-      res
-        .status(status)
-        .json({
-          error:
-            error instanceof HttpError
-              ? error.message
-              : status === 413
-                ? "File is too large."
-                : status === 400
-                  ? "Invalid JSON request."
-                  : "Request failed. Retry or contact your administrator.",
-        });
+      res.status(status).json({
+        error:
+          error instanceof HttpError
+            ? error.message
+            : status === 413
+              ? "File is too large."
+              : status === 400
+                ? "Invalid JSON request."
+                : "Request failed. Retry or contact your administrator.",
+      });
     },
   );
-  app.listen(PORT, "0.0.0.0", () => {
+  app.listen(PORT, HOST, () => {
     console.log(
-      `[Ahmed Quality Ops] Hospitality AI Command Center active on http://0.0.0.0:${PORT}`,
+      `[Ahmed Quality Ops] Hospitality AI Command Center active on http://${HOST}:${PORT}`,
     );
     console.log(
       `[Ahmed Quality Ops] Gemini AI Server-Side integration: ${aiClient ? "ACTIVE" : "DETERMINISTIC FALLBACK READY"}`,

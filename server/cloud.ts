@@ -8,6 +8,8 @@ import { Pool, type PoolClient } from "pg";
 import { initializeApp, getApps, applicationDefault } from "firebase-admin/app";
 import { getAuth } from "firebase-admin/auth";
 import { randomUUID } from "node:crypto";
+import { marketRouter } from "./market/routes";
+import { googleRouter } from "./market/google";
 import type { Apartment, UserRole } from "../src/types";
 import {
   DEFAULT_CHANNELS,
@@ -255,11 +257,14 @@ export function createCloudRouter(
           "This account has not been assigned a company seat.",
         );
       res.locals.actor = rows[0] as Actor;
+      res.locals.authTime = claims.auth_time;
       authorize(res.locals.actor, "read");
       res.set("Cache-Control", "no-store");
       next();
     })().catch(next);
   });
+  router.use("/market/google", googleRouter(pool));
+  router.use("/market", marketRouter(pool));
   router.get(
     "/workspace",
     route(async (_req, res) => {

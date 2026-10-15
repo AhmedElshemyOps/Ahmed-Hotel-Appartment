@@ -1,4 +1,9 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback, lazy, Suspense } from "react";
+const MarketWorkspace = lazy(() =>
+  import("../market/MarketWorkspace").then((m) => ({
+    default: m.MarketWorkspace,
+  })),
+);
 import { initializeApp } from "firebase/app";
 import {
   getAuth,
@@ -76,6 +81,20 @@ export function CloudApp({
   const [resolver, setResolver] = useState<MultiFactorResolver | null>(null),
     [secret, setSecret] = useState<TotpSecret | null>(null);
   const [tab, setTab] = useState("operations");
+  const marketApi = useCallback(
+    async (path: string, body?: unknown) => {
+      try {
+        return await cloudApi(auth, path, body);
+      } catch (e) {
+        if (e instanceof CloudApiError && [401, 403].includes(e.status)) {
+          setSnapshot(null);
+          setError(e.message);
+        }
+        throw e;
+      }
+    },
+    [auth],
+  );
   useEffect(() => {
     let cleanup = () => {};
     let live = true;
@@ -374,21 +393,25 @@ export function CloudApp({
       ) : (
         <>
           <nav className="flex gap-3 p-4">
-            {["operations", "revenue", "imports", "units"].map((t) => (
-              <button
-                key={t}
-                className={button + (tab === t ? " ring-2 ring-sky-300" : "")}
-                onClick={() => setTab(t)}
-              >
-                {t === "operations"
-                  ? "Tomorrow and guest service"
-                  : t === "revenue"
-                    ? "Revenue Intelligence"
-                    : t === "imports"
-                      ? "PMS file updates"
-                      : "Property units"}
-              </button>
-            ))}
+            {["operations", "revenue", "market", "imports", "units"].map(
+              (t) => (
+                <button
+                  key={t}
+                  className={button + (tab === t ? " ring-2 ring-sky-300" : "")}
+                  onClick={() => setTab(t)}
+                >
+                  {t === "operations"
+                    ? "Tomorrow and guest service"
+                    : t === "revenue"
+                      ? "Revenue Intelligence"
+                      : t === "market"
+                        ? "Geographic Market Intelligence"
+                        : t === "imports"
+                          ? "PMS file updates"
+                          : "Property units"}
+                </button>
+              ),
+            )}
             <button
               className={button}
               disabled={busy}
@@ -408,6 +431,13 @@ export function CloudApp({
               run={run}
               busy={busy}
             />
+          )}
+          {tab === "market" && (
+            <Suspense
+              fallback={<p className="p-6">Loading market intelligence…</p>}
+            >
+              <MarketWorkspace api={marketApi} role={snapshot.actor.role} />
+            </Suspense>
           )}
           {tab === "revenue" && (
             <CloudRevenue
