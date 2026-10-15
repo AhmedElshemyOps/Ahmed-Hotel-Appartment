@@ -1,3 +1,4 @@
+import "dotenv/config";
 import { Pool } from "pg";
 import { readdir, readFile } from "node:fs/promises";
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });

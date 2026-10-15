@@ -4,6 +4,10 @@ Hospitality operations and management intelligence for serviced apartments and h
 
 **Development status:** cloud operations and market intelligence are on main. The next development increment adds compliance/activation/OTA readiness and a disconnected accounting layer with reviewed CSV imports. It is not deployed. Read [the current progress record](docs/IMPLEMENTATION-PROGRESS.md) for exact boundaries and acceptance gates.
 
+## Prepare a live presentation
+
+Use `npm run session:check` followed by `npm run session:demo`. The launcher forces a local-only synthetic demonstration and disables live Gemini calls. Follow [the session runbook](docs/session/LIVE-DEMONSTRATION.md) for the presentation route and recovery steps. Read [the unified app guide and roadmap](docs/APP-GUIDE-AND-ROADMAP.md) for the full beginner explanation.
+
 ## Run a local synthetic demonstration
 
 Use Node.js 22. No company credentials are required for the demo.

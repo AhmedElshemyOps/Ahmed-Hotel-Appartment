@@ -59,3 +59,14 @@ Existing company/member isolation is extended with company readiness capabilitie
 - GitHub CI independently checks these workflows and the Docker image after publication. Production PostgreSQL role/concurrency, live Odoo/Google, backup restore and hosting are not proven by local tests.
 
 Test-development failures were corrected: the readiness form controls needed explicit accessible labels; an accounting test selected both a banner and a same-named option; and an unsupported-model planner test initially stopped earlier at missing endpoint discovery. Only the final passing results are counted above.
+
+## Synthetic live-session preparation
+
+The owner selected a **demonstration with synthetic data**. This is a local, screen-shared presentation, not a cloud production launch.
+
+- Added the single beginner guide at `docs/APP-GUIDE-AND-ROADMAP.md` and the presentation/recovery route at `docs/session/LIVE-DEMONSTRATION.md`.
+- Added `npm run session:check` (secret-safe configuration-only report) and `npm run session:demo` (forced synthetic, loopback-only mode with live Gemini disabled).
+- Clarified demo-refresh and chat wording so synthetic figures are not presented as verified company data.
+- Migration and market-worker scripts now load `.env` consistently; the pinned historical guide flags the correction.
+- Revalidated TypeScript, frontend build, 46 existing service/database/API tests, seven browser workflows, one production smoke test and two new session isolation/secret-output tests: **56 passing tests across these checks**. GitHub CI reruns the complete suite and container build on publication.
+- Main remains unchanged. No Odoo activation, public hosting, real company imports or deployment is part of this preparation.

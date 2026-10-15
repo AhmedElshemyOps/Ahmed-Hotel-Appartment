@@ -86,12 +86,12 @@ export const Header: React.FC<HeaderProps> = ({
                     ? 'bg-emerald-950 text-emerald-300 border-emerald-600 shadow-sm ring-1 ring-emerald-500/50'
                     : 'bg-slate-900/90 text-slate-400 border-slate-700 hover:text-slate-200'
                 }`}
-                title={isLiveMode ? "Disable 60s operational environment auto-refresh" : "Enable 60s operational environment auto-refresh"}
+                title={isLiveMode ? "Disable 60s synthetic data auto-refresh" : "Enable 60s synthetic data auto-refresh"}
               >
                 <span className={`w-2 h-2 rounded-full ${
                   isLiveMode ? 'bg-emerald-400 animate-pulse' : 'bg-slate-500'
                 }`} />
-                <span>Live Mode: {isLiveMode ? 'ACTIVE' : 'OFF'}</span>
+                <span>Demo refresh: {isLiveMode ? 'ACTIVE' : 'OFF'}</span>
                 {isLiveMode && (
                   <span className="font-mono text-[10px] bg-emerald-900/90 px-1.5 py-0.2 rounded text-emerald-200 border border-emerald-700 ml-0.5">
                     {countdownSeconds}s
@@ -171,7 +171,7 @@ export const Header: React.FC<HeaderProps> = ({
             <div className="flex flex-col text-left">
               <span className="text-[9px] uppercase font-bold tracking-wider text-slate-400 flex items-center gap-1">
                 <Activity className="w-3 h-3 text-emerald-400" />
-                Live Mode (60s)
+                Demo refresh (60s)
               </span>
               <span className="text-[10px] font-mono text-slate-300">
                 {isLiveMode ? (
