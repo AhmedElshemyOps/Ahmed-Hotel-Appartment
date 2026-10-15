@@ -1,3 +1,4 @@
+import { connectedEvidenceRouter, ownerPortalRouter } from "./features/connected-evidence/routes";
 import { uploadsRouter } from "./features/management-controls/uploads";
 import { managementRouter, invitationRouter } from "./features/management-controls/routes";
 import { lockedWorkspace, type Workspace } from "./db/workspace";
@@ -165,8 +166,10 @@ export function createCloudRouter(
     getAuth().verifyIdToken(token, true),
 ) {
   const router = Router();
+  router.use("/owner", ownerPortalRouter(pool, verify));
   router.use("/team", invitationRouter(pool, verify));
   router.use(companySession(pool, verify));
+  router.use("/connected-evidence", connectedEvidenceRouter(pool));
   router.use("/management", managementRouter(pool));
   router.use("/files", uploadsRouter(pool));
   router.use("/market/google", googleRouter(pool));

@@ -36,3 +36,5 @@ Start with the [beginner app guide](guides/APP-GUIDE-AND-ROADMAP.md). For curren
 - [Demonstration runbook](session/LIVE-DEMONSTRATION.md)
 
 The current app remains a development branch. Synthetic demonstrations do not establish live integration, production security configuration or deployment readiness.
+
+- [Connected records, Finance review and owner portal](reference/CONNECTED-EVIDENCE.md)

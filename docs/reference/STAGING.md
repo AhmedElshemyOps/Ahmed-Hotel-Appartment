@@ -8,7 +8,7 @@ Use a distinct Google Cloud project, PostgreSQL database, Firebase/Identity Plat
 
 The runtime must use the declared staging project/database/bucket. Enable the identity features needed for verified email, TOTP MFA, invited account creation and authorized domains. Provide current ClamAV signatures and an approved scanner executable. Configure private bucket public-access prevention, uniform access, logging, backups and an approved retention policy. Restrict the runtime identity to its staging resources, without service-account-key files or broad project administration.
 
-Apply migrations 001–008 with a separate migration identity. Keep schema ownership away from the runtime. In addition to earlier feature grants, review these new minimum grants with the real database role:
+Apply migrations 001–009 with a separate migration identity. Keep schema ownership away from the runtime. In addition to earlier feature grants, review these new minimum grants with the real database role:
 
 ```sql
 GRANT SELECT,INSERT ON team_invitations TO ahq_runtime;
@@ -21,6 +21,9 @@ GRANT UPDATE(capability) ON readiness_grants TO ahq_runtime;
 GRANT SELECT,DELETE ON market_property_grants TO ahq_runtime;
 GRANT SELECT,INSERT ON management_reports TO ahq_runtime;
 GRANT SELECT,INSERT,UPDATE ON protected_files TO ahq_runtime;
+GRANT SELECT,INSERT,DELETE ON reservation_accounting_links,owner_property_access TO ahq_runtime;
+GRANT SELECT,INSERT ON owner_report_releases TO ahq_runtime;
+GRANT UPDATE(withdrawn) ON owner_report_releases TO ahq_runtime;
 ```
 
 Retain existing scoped workspace/audit/sequence grants. The readiness-grant column update privilege permits PostgreSQL row locking; app capability edits still use checked workflows. Team serialization uses transaction advisory locks, so no organization-table write privilege is added just to lock a seat allocation. The one-GM/seat constraints remain in force. Database privileges do not replace application company checks.
