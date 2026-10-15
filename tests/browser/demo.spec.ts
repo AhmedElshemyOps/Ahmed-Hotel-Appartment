@@ -186,3 +186,196 @@ test("integrated forty-unit market demo supports matching, guarded approvals, ma
     page.getByRole("button", { name: "Save for GM review" }),
   ).toHaveCount(0);
 });
+
+test("readiness workflow shows 40 synthetic units, legal activation blockers, channel gaps and review report", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await page
+    .getByRole("button", { name: "Compliance, Activation & OTA", exact: true })
+    .click();
+  await expect(
+    page.getByRole("heading", {
+      name: "Property Readiness & Activation",
+      exact: true,
+    }),
+  ).toBeVisible();
+  await expect(
+    page.getByLabel("Apartment", { exact: true }).locator("option"),
+  ).toHaveCount(40);
+  await page
+    .getByRole("button", { name: "Property Activation Center", exact: true })
+    .click();
+  await expect(
+    page.getByText(
+      "Jurisdiction-specific mandatory requirements must be reviewed and configured",
+      { exact: false },
+    ),
+  ).toBeVisible();
+  await page
+    .getByLabel("Requested property status", { exact: true })
+    .selectOption("Active / Rentable");
+  await page
+    .getByLabel("Approval or status-change reason", { exact: true })
+    .fill("Attempt activation without permit evidence");
+  await page
+    .getByRole("button", { name: "Record GM status decision", exact: true })
+    .click();
+  await expect(page.getByRole("alert")).toContainText("Activation blocked");
+  await page
+    .getByRole("button", { name: "OTA Listing Readiness", exact: true })
+    .click();
+  await page
+    .getByRole("button", { name: "Add channel checklist", exact: true })
+    .click();
+  await expect(
+    page.getByText("Needs attention: Unverified amenity:", { exact: false }),
+  ).toHaveCount(0);
+  await expect(
+    page.getByText(
+      "Needs attention: Approved photo missing or below configured width: cover",
+      { exact: true },
+    ),
+  ).toBeVisible();
+  await page
+    .getByLabel("Airbnb title", { exact: true })
+    .fill("Factual synthetic studio apartment");
+  await page
+    .getByRole("button", { name: "Save OTA readiness", exact: true })
+    .click();
+  await page
+    .getByRole("button", { name: "General Manager Briefing", exact: true })
+    .click();
+  const download = page.waitForEvent("download");
+  await page
+    .getByRole("button", {
+      name: "Download internal readiness review",
+      exact: true,
+    })
+    .click();
+  expect((await download).suggestedFilename()).toBe(
+    "SYNTHETIC-Readiness-Review.html",
+  );
+  await expect(
+    page.getByText("Airbnb: Not Started", { exact: false }),
+  ).toHaveCount(0);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect(
+    page.getByRole("heading", {
+      name: "Property Readiness & Activation",
+      exact: true,
+    }),
+  ).toBeVisible();
+});
+
+test("accounting demo separates payments from revenue and keeps unknown Odoo disconnected", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await page
+    .getByRole("button", {
+      name: "Odoo Accounting & Financial Intelligence",
+      exact: true,
+    })
+    .click();
+  await expect(
+    page.getByRole("heading", {
+      name: "Odoo Accounting & Financial Intelligence",
+      exact: true,
+    }),
+  ).toBeVisible();
+  await expect(
+    page.getByText(
+      "SYNTHETIC ACCOUNTING DEMONSTRATION — no real transactions",
+      { exact: false },
+    ),
+  ).toBeVisible();
+  await expect(page.getByText("AED 400,000.00", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Payments", exact: true }).click();
+  await expect(
+    page.locator("summary").filter({ hasText: "SIM-PAY-" }),
+  ).toHaveCount(40);
+  await page
+    .getByRole("button", { name: "Reconciliation", exact: true })
+    .click();
+  await expect(
+    page.getByText("Payment document totals: AED 420000.00.", { exact: false }),
+  ).toBeVisible();
+  await page
+    .getByRole("button", { name: "Connection setup", exact: true })
+    .click();
+  await page
+    .getByRole("button", {
+      name: "Check synchronization readiness",
+      exact: true,
+    })
+    .click();
+  await expect(page.getByRole("status")).toContainText("disabled");
+  await page.getByRole("button", { name: "CSV import", exact: true }).click();
+  const download = page.waitForEvent("download");
+  await page
+    .getByRole("button", { name: "Download blank CSV template", exact: true })
+    .click();
+  expect((await download).suggestedFilename()).toBe(
+    "accounting-journal-headers.csv",
+  );
+  await expect(
+    page.getByRole("button", {
+      name: "Preview accounting import",
+      exact: true,
+    }),
+  ).toBeDisabled();
+});
+
+test("report center uses white paper, distinct date periods and isolated printable content", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await page
+    .getByRole("button", { name: "Reports Center", exact: true })
+    .click();
+  await page.getByLabel("Report date", { exact: true }).fill("2026-10-15");
+  const paper = page.locator(".management-report");
+  await expect(paper).toHaveCSS("background-color", "rgb(255, 255, 255)");
+  await expect(paper).toContainText("SYNTHETIC DEMONSTRATION");
+  await expect(paper).not.toContainText("GAAP / USALI Verified");
+  await expect(paper).not.toContainText("Property Owner & Asset Board");
+  await expect(paper).toContainText("1 Oct 2026 - 31 Oct 2026");
+  const monthlyRevenue = await paper
+    .locator(".report-kpi")
+    .filter({ hasText: "Total revenue" })
+    .innerText();
+  await page.getByRole("button", { name: "Daily report", exact: true }).click();
+  await expect(
+    paper.getByRole("heading", { name: "Daily Operations Brief", exact: true }),
+  ).toBeVisible();
+  await expect(paper).toContainText("15 Oct 2026 - 15 Oct 2026");
+  expect(
+    await paper
+      .locator(".report-kpi")
+      .filter({ hasText: "Total revenue" })
+      .innerText(),
+  ).not.toBe(monthlyRevenue);
+  await page
+    .getByRole("button", { name: "Weekly report", exact: true })
+    .click();
+  await expect(paper).toContainText("9 Oct 2026 - 15 Oct 2026");
+  await page.emulateMedia({ media: "print" });
+  await expect(page.locator(".report-toolbar")).toBeHidden();
+  await expect(paper).toHaveCSS("background-color", "rgb(255, 255, 255)");
+  await expect(
+    page.getByRole("button", { name: "Reports Center", exact: true }),
+  ).toBeHidden();
+  await page.emulateMedia({ media: "screen" });
+  const download = page.waitForEvent("download");
+  await page
+    .getByRole("button", { name: "Export report CSV", exact: true })
+    .click();
+  expect((await download).suggestedFilename()).toContain(
+    "SYNTHETIC-WEEKLY-2026-10-09",
+  );
+  await page.getByLabel("Report date", { exact: true }).fill("");
+  await expect(
+    page.getByRole("button", { name: "Print / Save PDF", exact: true }),
+  ).toBeDisabled();
+});

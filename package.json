@@ -15,7 +15,9 @@
     "check": "npm run lint && npm test && npm run build && npm run test:production",
     "migrate": "node --import tsx scripts/migrate.ts",
     "test:production": "node --import tsx --test tests/production.smoke.ts",
-    "market:worker": "node --import tsx scripts/market-worker.ts"
+    "market:worker": "node --import tsx scripts/market-worker.ts",
+    "session:demo": "node --import tsx scripts/demo-session.ts",
+    "session:check": "node --import tsx scripts/session-check.ts"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",

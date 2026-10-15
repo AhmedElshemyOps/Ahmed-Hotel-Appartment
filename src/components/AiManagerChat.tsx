@@ -42,12 +42,14 @@ export const AiManagerChat: React.FC<AiManagerChatProps> = ({
       id: 'msg-welcome',
       sender: 'ai',
       text: `### Welcome to Ahmed Quality Ops AI Decision Support
-I am your Executive AI Hotel Manager grounded in verified property data across all **40 Serviced Apartments**.
+This demonstration uses **40 synthetic apartments**. These are fictional records, not verified company data.
+
+The assistant can explain the displayed demonstration metrics; it does not operate your properties or connect to Odoo.
 
 How can I assist your operational and commercial review today? You may choose from the executive prompts below or enter a custom query.`,
-      source: 'Ahmed Quality Ops Operational Intelligence',
-      timestamp: '14:00 GST',
-      isLiveModel: true,
+      source: 'Synthetic demonstration — no company connection',
+      timestamp: new Date().toLocaleTimeString('en-GB', {hour:'2-digit',minute:'2-digit',timeZone:'Asia/Dubai'}),
+      isLiveModel: false,
     },
   ]);
 

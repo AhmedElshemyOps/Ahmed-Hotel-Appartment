@@ -1,3 +1,4 @@
+import { accountingRouter } from "./accounting/routes";
 import {
   Router,
   type Request,
@@ -8,6 +9,7 @@ import { Pool, type PoolClient } from "pg";
 import { initializeApp, getApps, applicationDefault } from "firebase-admin/app";
 import { getAuth } from "firebase-admin/auth";
 import { randomUUID } from "node:crypto";
+import { readinessRouter } from "./readiness/routes";
 import { marketRouter } from "./market/routes";
 import { googleRouter } from "./market/google";
 import type { Apartment, UserRole } from "../src/types";
@@ -265,6 +267,8 @@ export function createCloudRouter(
   });
   router.use("/market/google", googleRouter(pool));
   router.use("/market", marketRouter(pool));
+  router.use("/readiness", readinessRouter(pool));
+  router.use("/accounting", accountingRouter(pool));
   router.get(
     "/workspace",
     route(async (_req, res) => {

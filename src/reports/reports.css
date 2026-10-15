@@ -1,0 +1,407 @@
+/* Dedicated report styles: screen preview and isolated print document share this stylesheet. */
+.report-center {
+  padding: 24px;
+}
+.report-toolbar {
+  max-width: 1080px;
+  margin: 0 auto 20px;
+  padding: 20px;
+  border: 1px solid #334155;
+  border-radius: 12px;
+  background: #111c2d;
+  color: #f1f5f9;
+}
+.report-toolbar h2 {
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0 0 5px;
+}
+.report-toolbar p {
+  font-size: 13px;
+  color: #cbd5e1;
+  margin: 4px 0 14px;
+}
+.report-control-row {
+  display: flex;
+  align-items: end;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.report-type-group {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+.report-toolbar button {
+  padding: 10px 14px;
+  border: 1px solid #475569;
+  border-radius: 7px;
+  font-size: 13px;
+  font-weight: 600;
+  background: #1e293b;
+  cursor: pointer;
+}
+.report-toolbar button[aria-pressed="true"],
+.report-toolbar .report-print-button {
+  background: #0369a1;
+  border-color: #0284c7;
+  color: white;
+}
+.report-toolbar label {
+  display: grid;
+  gap: 5px;
+  font-size: 12px;
+}
+.report-toolbar input {
+  padding: 8px;
+  border-radius: 6px;
+  color: white;
+  background: #0f172a;
+  border: 1px solid #64748b;
+}
+.report-toolbar [role="alert"] {
+  color: #fecaca;
+  margin-top: 10px;
+}
+.management-report {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 42px 48px;
+  background: #fff;
+  color: #18273b;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 12px;
+  line-height: 1.5;
+  box-shadow: 0 8px 40px #0003;
+  border-radius: 4px;
+}
+.management-report * {
+  box-sizing: border-box;
+}
+.management-report .report-masthead {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  gap: 24px;
+  padding-bottom: 20px;
+  border-bottom: 3px solid #146e83;
+}
+.management-report .report-brand {
+  font-size: 12px;
+  letter-spacing: 2px;
+  font-weight: 800;
+  color: #146e83;
+  text-transform: uppercase;
+}
+.management-report h1 {
+  color: #142c45;
+  font-size: 30px;
+  line-height: 1.15;
+  letter-spacing: -0.8px;
+  margin: 8px 0;
+  font-weight: 750;
+}
+.management-report .report-subtitle {
+  color: #526379;
+  font-size: 12px;
+  margin: 0;
+}
+.management-report .report-meta {
+  min-width: 190px;
+  font-size: 10px;
+  color: #526379;
+  text-align: right;
+}
+.management-report .report-meta strong {
+  display: block;
+  color: #18273b;
+  margin-top: 2px;
+}
+.management-report .report-meta p {
+  margin: 0 0 8px;
+}
+.management-report .report-disclosure {
+  margin: 18px 0;
+  border: 1px solid #dec995;
+  border-left: 4px solid #b38327;
+  padding: 10px 13px;
+  background: #fffaf0;
+  color: #634a1c;
+  font-size: 10px;
+}
+.management-report .report-disclosure strong {
+  letter-spacing: 0.7px;
+  display: block;
+  font-size: 10px;
+  margin-bottom: 3px;
+}
+.management-report .report-kpis {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin: 18px 0;
+}
+.management-report .report-kpi {
+  padding: 12px 14px;
+  border: 1px solid #d8e2eb;
+  border-top: 2px solid #146e83;
+  background: #f7fafc;
+  border-radius: 3px;
+}
+.management-report .report-kpi-label {
+  color: #526379;
+  font-size: 10px;
+  margin-bottom: 5px;
+}
+.management-report .report-kpi-value {
+  font-size: 21px;
+  line-height: 1.2;
+  font-weight: 700;
+  color: #142c45;
+  font-variant-numeric: tabular-nums;
+}
+.management-report section {
+  margin-top: 22px;
+}
+.management-report h2 {
+  display: flex;
+  align-items: baseline;
+  gap: 9px;
+  border-bottom: 1px solid #d8e2eb;
+  padding-bottom: 7px;
+  margin: 0 0 10px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #142c45;
+}
+.management-report h2 span {
+  font-size: 10px;
+  color: #146e83;
+  letter-spacing: 0.6px;
+}
+.management-report p {
+  margin: 6px 0;
+}
+.management-report table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  font-size: 10px;
+}
+.management-report th {
+  background: #eaf1f6;
+  color: #294256;
+  font-weight: 700;
+  text-align: left;
+  border-bottom: 1px solid #b9cbd8;
+  padding: 9px 10px;
+}
+.management-report td {
+  padding: 8px 10px;
+  border-bottom: 1px solid #e1e8ef;
+  vertical-align: top;
+  overflow-wrap: anywhere;
+}
+.management-report tbody tr:nth-child(even) {
+  background: #f8fafc;
+}
+.management-report .report-number {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.management-report .report-caption {
+  color: #526379;
+  font-size: 9px;
+  margin: 7px 0;
+}
+.management-report .report-empty {
+  padding: 12px;
+  background: #f7fafc;
+  border: 1px solid #e1e8ef;
+  font-size: 11px;
+}
+.management-report .report-action {
+  padding: 10px 0;
+  border-bottom: 1px solid #e1e8ef;
+}
+.management-report .report-action-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: #142c45;
+}
+.management-report .report-action-meta {
+  color: #526379;
+  font-size: 9px;
+  margin-top: 5px;
+}
+.management-report .report-definitions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 7px 20px;
+  font-size: 9px;
+  color: #526379;
+}
+.management-report .report-signoff {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 30px;
+  margin-top: 20px;
+  padding-top: 12px;
+  border-top: 1px solid #b9cbd8;
+  color: #526379;
+  font-size: 9px;
+}
+.management-report .report-footer {
+  border-top: 2px solid #146e83;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 9px;
+  margin-top: 22px;
+  color: #526379;
+  font-size: 9px;
+}
+@media (max-width: 650px) {
+  .report-center {
+    padding: 12px;
+  }
+  .management-report {
+    padding: 24px 18px;
+  }
+  .management-report h1 {
+    font-size: 24px;
+  }
+  .management-report .report-masthead {
+    display: block;
+  }
+  .management-report .report-meta {
+    text-align: left;
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin-top: 12px;
+  }
+  .management-report .report-kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .management-report .report-kpi-value {
+    font-size: 18px;
+  }
+}
+@page {
+  size: A4 portrait;
+  margin: 16mm 14mm 17mm;
+  @bottom-left {
+    content: "AHMED QUALITY OPS | Internal review";
+    font-family: Arial, sans-serif;
+    font-size: 8pt;
+    color: #526379;
+  }
+  @bottom-right {
+    content: "Page " counter(page) " of " counter(pages);
+    font-family: Arial, sans-serif;
+    font-size: 8pt;
+    color: #526379;
+  }
+}
+@media print {
+  /* Page-margin branding replaces the in-document footer, preventing a footer-only page. */
+  .management-report .report-footer {
+    display: none;
+  }
+  html,
+  body {
+    background: white !important;
+    color: #18273b !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    height: auto !important;
+  }
+  body.report-center-active
+    #root
+    *:not(:has(.report-center)):not(.report-center):not(.report-center *) {
+    display: none !important;
+  }
+  body.report-center-active #root,
+  body.report-center-active #root *:has(.report-center) {
+    display: block !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow: visible !important;
+    background: white !important;
+    color: #18273b !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  .report-center {
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  .report-toolbar {
+    display: none !important;
+  }
+  .management-report {
+    max-width: none;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    font-size: 10pt;
+    background: white !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .management-report h1 {
+    font-size: 25pt;
+  }
+  .management-report .report-kpi-value {
+    font-size: 17pt;
+  }
+  .management-report section {
+    margin-top: 16px;
+  }
+  .management-report h2 {
+    break-after: avoid;
+    page-break-after: avoid;
+  }
+  .management-report .report-masthead,
+  .management-report .report-disclosure,
+  .management-report .report-kpis,
+  .management-report .report-signoff,
+  .management-report .report-footer,
+  .management-report .report-action {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+  .management-report table {
+    font-size: 8pt;
+  }
+  .management-report tr {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+  .management-report thead {
+    display: table-header-group;
+  }
+  .management-report .report-caption {
+    break-before: avoid;
+  }
+  .management-report .report-meta {
+    text-align: right;
+    display: block;
+    min-width: 170px;
+    margin: 0;
+  }
+  .management-report .report-masthead {
+    display: flex;
+  }
+  .management-report .report-kpis {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
