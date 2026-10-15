@@ -1,3 +1,5 @@
+import { ConnectedEvidenceCenter } from "../../src/features/connected-evidence/ConnectedEvidenceCenter";
+import { OwnerReports } from "../../src/features/connected-evidence/OwnerReports";
 // Synthetic UI fixture served only by Vite's local test server, never included in dist.
 import React, { useState } from "react";
 import { createRoot } from "react-dom/client";
@@ -45,7 +47,53 @@ function Harness() {
     sync: { configured: false, lastSuccess: null, events: [] },
     history: [],
   });
-  const api = async (path: string, body: any) => {
+  const api = async (path: string, body?: any): Promise<any> => {
+    if (path === "/accounting")
+      return {
+        connections: [
+          { id: "SIM-connection", config: { label: "SYNTHETIC ledger" } },
+        ],
+      };
+    if (path === "/workspace") return snapshot;
+    if (path === "/connected-evidence/owners")
+      return { grants: [], releases: [] };
+    if (path === "/connected-evidence/owners/preview")
+      return {
+        revision: 0,
+        unitNumber: "101",
+        period: { start: "2026-10-01", end: "2026-10-31" },
+        current: {
+          roomRevenue: 1500,
+          commission: 270,
+          afterCommission: 1230,
+          occupiedNights: 3,
+        },
+        prior: { roomRevenue: 0 },
+        limitations: "SYNTHETIC preview — not profit.",
+      };
+    if (path === "/connected-evidence/owners/release") {
+      if (body.expectedRevision !== 0) throw Error("Missing reviewed revision");
+      return { ok: true };
+    }
+    if (path === "/connected-evidence/questions")
+      return {
+        generatedAt: "2026-10-15T00:00:00Z",
+        workspaceRevision: 0,
+        facts: [
+          {
+            text: "SYNTHETIC apartment 101 arrival",
+            references: [{ kind: "reservation", id: "test1", version: "1" }],
+          },
+        ],
+        limitations: ["Native PMS is not connected."],
+      };
+    if (path === "/connected-evidence/evidence")
+      return {
+        kind: "reservation",
+        version: 1,
+        record: { source: "SYNTHETIC fixture", checkInDate: tomorrow },
+      };
+
     if (path === "/channels")
       setSnapshot((s: any) => ({
         ...s,
@@ -84,9 +132,12 @@ function Harness() {
       <nav>
         <button onClick={() => setTab("operations")}>Operations fixture</button>
         <button onClick={() => setTab("revenue")}>Revenue fixture</button>
+        <button onClick={() => setTab("evidence")}>Evidence fixture</button>
       </nav>
       {error && <p role="alert">{error}</p>}
-      {tab === "revenue" ? (
+      {tab === "evidence" ? (
+        <ConnectedEvidenceCenter api={api} gm />
+      ) : tab === "revenue" ? (
         <CloudRevenue
           snapshot={snapshot}
           run={run}

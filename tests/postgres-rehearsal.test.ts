@@ -43,7 +43,8 @@ test(
       options: `-c search_path=${schema},public`,
     });
     let server: any;
-  let runtime:Pool|undefined;const runtimeRole="ahq_runtime_"+id();
+    let runtime: Pool | undefined;
+    const runtimeRole = "ahq_runtime_" + id();
     try {
       await migrate(pool);
       await pool.query(
@@ -51,8 +52,14 @@ test(
       );
       let invitedEmail = "invited@example.test";
       await admin.query(`CREATE ROLE ${runtimeRole} NOLOGIN`);
-      await pool.query(`GRANT USAGE ON SCHEMA ${schema} TO ${runtimeRole}; GRANT SELECT ON ALL TABLES IN SCHEMA ${schema} TO ${runtimeRole}; GRANT INSERT,UPDATE ON member_profiles TO ${runtimeRole}; GRANT INSERT,DELETE ON memberships TO ${runtimeRole}; GRANT UPDATE(role) ON memberships TO ${runtimeRole}; GRANT INSERT ON team_invitations TO ${runtimeRole}; GRANT UPDATE(status,accepted_by) ON team_invitations TO ${runtimeRole}; GRANT INSERT,DELETE ON readiness_grants TO ${runtimeRole}; GRANT UPDATE(capability) ON readiness_grants TO ${runtimeRole}; GRANT INSERT ON audit_events TO ${runtimeRole}; GRANT USAGE,SELECT ON ALL SEQUENCES IN SCHEMA ${schema} TO ${runtimeRole};`);
-      runtime=new Pool({connectionString:connection,max:20,options:`-c role=${runtimeRole} -c search_path=${schema},public`});
+      await pool.query(
+        `GRANT USAGE ON SCHEMA ${schema} TO ${runtimeRole}; GRANT SELECT ON ALL TABLES IN SCHEMA ${schema} TO ${runtimeRole}; GRANT INSERT,UPDATE ON member_profiles TO ${runtimeRole}; GRANT INSERT,DELETE ON memberships TO ${runtimeRole}; GRANT UPDATE(role) ON memberships TO ${runtimeRole}; GRANT INSERT ON team_invitations TO ${runtimeRole}; GRANT UPDATE(status,accepted_by) ON team_invitations TO ${runtimeRole}; GRANT INSERT,DELETE ON readiness_grants TO ${runtimeRole}; GRANT UPDATE(capability) ON readiness_grants TO ${runtimeRole}; GRANT INSERT ON audit_events TO ${runtimeRole}; GRANT USAGE,SELECT ON ALL SEQUENCES IN SCHEMA ${schema} TO ${runtimeRole};`,
+      );
+      runtime = new Pool({
+        connectionString: connection,
+        max: 20,
+        options: `-c role=${runtimeRole} -c search_path=${schema},public`,
+      });
       const app = express();
       app.use(express.json());
       app.use(
@@ -192,6 +199,126 @@ test(
       await pool?.end();
       await admin.query(`DROP DATABASE IF EXISTS ${source} WITH (FORCE)`);
       await admin.query(`DROP DATABASE IF EXISTS ${target} WITH (FORCE)`);
+      await admin.end();
+    }
+  },
+);
+
+test(
+  "real PostgreSQL permits owner releases under restricted grants and denies rewriting their source snapshot",
+  { skip: !connection },
+  async () => {
+    isolatedConnection();
+    const admin = new Pool({ connectionString: connection }),
+      schema = "ahq_owner_" + id(),
+      role = "ahq_owner_runtime_" + id();
+    let runtime: Pool | undefined, server: any;
+    await admin.query(`CREATE SCHEMA ${schema}`);
+    const pool = new Pool({
+      connectionString: connection,
+      options: `-c search_path=${schema},public`,
+    });
+    try {
+      await migrate(pool);
+      await pool.query(
+        "INSERT INTO organizations VALUES('a','SYNTHETIC owner company','gm');INSERT INTO memberships VALUES('gm','a',1,'General Manager');",
+      );
+      await pool.query(
+        "INSERT INTO workspaces(organization_id,data) VALUES($1,$2)",
+        [
+          "a",
+          {
+            apartments: [{ id: "u0", unitNumber: "101" }],
+            reservations: [],
+            channels: [],
+          },
+        ],
+      );
+      await pool.query(
+        "INSERT INTO owner_property_access(organization_id,owner_uid,owner_email,unit_id,granted_by) VALUES('a','owner','owner@example.test','u0','gm')",
+      );
+      await admin.query(`CREATE ROLE ${role} NOLOGIN`);
+      await pool.query(
+        `GRANT USAGE ON SCHEMA ${schema} TO ${role};GRANT SELECT ON ALL TABLES IN SCHEMA ${schema} TO ${role};GRANT UPDATE(role) ON memberships TO ${role};GRANT INSERT,UPDATE ON workspaces TO ${role};GRANT INSERT ON owner_report_releases,audit_events TO ${role};GRANT UPDATE(withdrawn) ON owner_report_releases TO ${role};GRANT USAGE,SELECT ON ALL SEQUENCES IN SCHEMA ${schema} TO ${role};`,
+      );
+      runtime = new Pool({
+        connectionString: connection,
+        options: `-c role=${role} -c search_path=${schema},public`,
+      });
+      const app = express();
+      app.use(express.json());
+      app.use(
+        "/api",
+        createCloudRouter(runtime, async (token) => ({
+          uid: token,
+          email: token === "owner" ? "owner@example.test" : "gm@example.test",
+          email_verified: true,
+          auth_time: Math.floor(Date.now() / 1000),
+          firebase: { sign_in_second_factor: "totp" },
+        })),
+      );
+      app.use((e: any, _q: any, r: any, _n: any) =>
+        r
+          .status(e instanceof HttpError ? e.status : 500)
+          .json({ error: e.message }),
+      );
+      server = app.listen(0, "127.0.0.1");
+      await new Promise<void>((r) => server.once("listening", r));
+      const base = `http://127.0.0.1:${server.address().port}/api`;
+      const post = async (path: string, body: unknown) =>
+        fetch(base + path, {
+          method: "POST",
+          headers: {
+            Authorization: "Bearer gm",
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(body),
+        });
+      const release = await post("/connected-evidence/owners/release", {
+        unitId: "u0",
+        type: "DAILY",
+        date: "2026-10-15",
+        expectedRevision: 0,
+        confirm: true,
+      });
+      assert.equal(release.status, 201);
+      const data = await release.json();
+      const get = await fetch(base + "/owner/reports", {
+        headers: { Authorization: "Bearer owner" },
+      });
+      assert.equal(get.status, 200);
+      const reports = await get.json();
+      assert.equal(reports.reports.length, 1);
+      assert.ok(!JSON.stringify(reports).includes("source_snapshot"));
+      await assert.rejects(
+        runtime.query("UPDATE owner_report_releases SET snapshot='{}'"),
+        /permission denied/,
+      );
+      await assert.rejects(
+        pool.query("UPDATE owner_report_releases SET source_snapshot='{}'"),
+        /immutable/,
+      );
+      assert.equal(
+        (await post("/connected-evidence/owners/withdraw", { id: data.id }))
+          .status,
+        200,
+      );
+      assert.equal(
+        (
+          await (
+            await fetch(base + "/owner/reports", {
+              headers: { Authorization: "Bearer owner" },
+            })
+          ).json()
+        ).reports.length,
+        0,
+      );
+    } finally {
+      if (server) await new Promise<void>((r) => server.close(() => r()));
+      await runtime?.end();
+      await pool.end();
+      await admin.query(`DROP SCHEMA ${schema} CASCADE`);
+      await admin.query(`DROP ROLE IF EXISTS ${role}`);
       await admin.end();
     }
   },

@@ -90,6 +90,14 @@ export async function applyReservationEvent(
         422,
         "Every reservation needs documented fields and a valid source updatedAt timestamp.",
       );
+  if (
+    new Set(event.reservations.map((r) => r.externalId)).size !==
+    event.reservations.length
+  )
+    throw new HttpError(
+      422,
+      "Duplicate reservation IDs in one event; nothing was applied.",
+    );
   return transaction(pool, async (db) => {
     const workspace = await lockedWorkspace(db, org);
     const hash = fingerprint(event);
@@ -105,6 +113,40 @@ export async function applyReservationEvent(
         ...previous.rows[0].details,
         replayed: true,
       };
+    }
+    // Equal source timestamps must never conceal conflicting corrections.
+    for (const r of event.reservations) {
+      const old = workspace.data.reservations.find(
+        (x) => x.source === source && x.externalId === r.externalId,
+      );
+      if (
+        old?.sourceUpdatedAt &&
+        Date.parse(old.sourceUpdatedAt) === Date.parse(r.updatedAt)
+      ) {
+        const csv =
+          columns.join(",") +
+          "\n" +
+          columns
+            .map((c) => '"' + String(r[c]).replace(/"/g, '""') + '"')
+            .join(",");
+        const same = previewPms(
+          csv,
+          Object.fromEntries(columns.map((c) => [c, c])) as Mapping,
+          source,
+          workspace.data.apartments,
+          workspace.data.channels,
+          workspace.data.reservations,
+          true,
+        );
+        if (
+          same.errors.length ||
+          same.changes.some((c) => c.operation !== "unchanged")
+        )
+          throw new HttpError(
+            409,
+            "Conflicting reservation data has the same source timestamp; review the source version before retrying.",
+          );
+      }
     }
     const retained = event.reservations.filter((r) => {
       const old = workspace.data.reservations.find(

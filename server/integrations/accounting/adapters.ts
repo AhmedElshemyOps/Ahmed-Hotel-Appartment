@@ -107,6 +107,17 @@ export async function collectReadOnly(
   query: { companyId: string; from: string; to: string },
   signal: AbortSignal,
 ) {
+  const validDate = (v: string) =>
+    /^\d{4}-\d{2}-\d{2}$/.test(v) &&
+    Number.isFinite(Date.parse(v)) &&
+    new Date(v).toISOString().slice(0, 10) === v;
+  if (
+    !query.companyId ||
+    !validDate(query.from) ||
+    !validDate(query.to) ||
+    query.from > query.to
+  )
+    throw Error("A valid authorized company and date window are required.");
   if (adapter.readOnly !== true) throw Error("Read-only connector required.");
   const pages: AccountingPacket[] = [];
   let cursor: string | undefined;
@@ -114,6 +125,7 @@ export async function collectReadOnly(
   for (let page = 0; page < 100; page++) {
     if (signal.aborted) throw Error("Synchronization cancelled.");
     const result = await adapter.readPage({ ...query, cursor, signal });
+    if (signal.aborted) throw Error("Synchronization cancelled.");
     const packet = (
       await import("../../../src/features/accounting/model")
     ).packetSchema.parse(result.packet);

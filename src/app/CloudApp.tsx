@@ -1,3 +1,5 @@
+import { ConnectedEvidenceCenter } from "../features/connected-evidence/ConnectedEvidenceCenter";
+import { OwnerReports } from "../features/connected-evidence/OwnerReports";
 import { ManagementCenter } from "../features/management-controls/ManagementCenter";
 import React, { useEffect, useState, useCallback, lazy, Suspense } from "react";
 const AccountingCenter = lazy(() =>
@@ -98,6 +100,8 @@ export function CloudApp({
   const [resolver, setResolver] = useState<MultiFactorResolver | null>(null),
     [secret, setSecret] = useState<TotpSecret | null>(null);
   const [tab, setTab] = useState("operations");
+  const [ownerMode] = useState(() => window.location.hash === "#owner");
+  const [ownerData, setOwnerData] = useState<any>(null);
   const [sourceUnitId, setSourceUnitId] = useState<string | undefined>();
   const [invitationCode, setInvitationCode] = useState(
     () =>
@@ -129,7 +133,10 @@ export function CloudApp({
         if (live)
           cleanup = onIdTokenChanged(auth, (u) => {
             setUser((previous) => {
-              if (previous?.uid !== u?.uid) setSnapshot(null);
+              if (previous?.uid !== u?.uid) {
+                setSnapshot(null);
+                setOwnerData(null);
+              }
               return u;
             });
             setReady(true);
@@ -143,17 +150,26 @@ export function CloudApp({
   }, [auth]);
   const refresh = async () => {
     const uid = auth.currentUser?.uid;
-    const data = await cloudApi(auth, "/workspace");
+    const data = await cloudApi(
+      auth,
+      ownerMode ? "/owner/reports" : "/workspace",
+    );
+    if (ownerMode) {
+      if (uid && auth.currentUser?.uid === uid) setOwnerData(data);
+      return;
+    }
     if (uid && auth.currentUser?.uid === uid && data.actor.uid === uid)
       setSnapshot(data);
   };
   useEffect(() => {
     if (user) {
       let live = true;
-      cloudApi(auth, "/workspace")
+      cloudApi(auth, ownerMode ? "/owner/reports" : "/workspace")
         .then((data) => {
-          if (live && auth.currentUser?.uid === data.actor.uid)
-            setSnapshot(data);
+          if (live && auth.currentUser?.uid === user.uid) {
+            if (ownerMode) setOwnerData(data);
+            else if (data.actor.uid === user.uid) setSnapshot(data);
+          }
         })
         .catch((e) => {
           if (live) setError(e.message);
@@ -164,13 +180,15 @@ export function CloudApp({
     }
   }, [user]);
   useEffect(() => {
-    if (!user || tab !== "operations" || busy) return;
+    if (!user || ownerMode || tab !== "operations" || busy) return;
     let live = true;
     const timer = setInterval(() => {
-      cloudApi(auth, "/workspace")
+      cloudApi(auth, ownerMode ? "/owner/reports" : "/workspace")
         .then((data) => {
-          if (live && auth.currentUser?.uid === data.actor.uid)
-            setSnapshot(data);
+          if (live && auth.currentUser?.uid === user.uid) {
+            if (ownerMode) setOwnerData(data);
+            else if (data.actor.uid === user.uid) setSnapshot(data);
+          }
         })
         .catch((e) => {
           if (!live) return;
@@ -265,6 +283,7 @@ export function CloudApp({
               onClick={() =>
                 run(async () => {
                   await signOut(auth);
+                  setOwnerData(null);
                   setSecret(null);
                   setCode("");
                   setSnapshot(null);
@@ -365,6 +384,20 @@ export function CloudApp({
             </button>
           )}
         </form>
+      ) : ownerMode && ownerData ? (
+        <OwnerReports
+          data={ownerData}
+          refresh={() =>
+            run(async () => {
+              try {
+                setOwnerData(await cloudApi(auth, "/owner/reports"));
+              } catch (e) {
+                setOwnerData(null);
+                throw e;
+              }
+            })
+          }
+        />
       ) : !snapshot ? (
         <section className={box + " max-w-lg m-6"}>
           <h2 className="text-xl">Complete account security</h2>
@@ -461,6 +494,11 @@ export function CloudApp({
               ...(snapshot.actor.role === "General Manager"
                 ? ["management"]
                 : []),
+              ...(["General Manager", "Finance Manager"].includes(
+                snapshot.actor.role,
+              )
+                ? ["connected"]
+                : []),
               "operations",
               "readiness",
               "accounting",
@@ -476,19 +514,21 @@ export function CloudApp({
               >
                 {t === "management"
                   ? "Management Centre"
-                  : t === "operations"
-                    ? "Tomorrow and guest service"
-                    : t === "readiness"
-                      ? "Compliance, Activation & OTA"
-                      : t === "accounting"
-                        ? "Odoo Accounting & Financial Intelligence"
-                        : t === "revenue"
-                          ? "Revenue Intelligence"
-                          : t === "market"
-                            ? "Geographic Market Intelligence"
-                            : t === "imports"
-                              ? "PMS file updates"
-                              : "Property units"}
+                  : t === "connected"
+                    ? "Connected records & evidence"
+                    : t === "operations"
+                      ? "Tomorrow and guest service"
+                      : t === "readiness"
+                        ? "Compliance, Activation & OTA"
+                        : t === "accounting"
+                          ? "Odoo Accounting & Financial Intelligence"
+                          : t === "revenue"
+                            ? "Revenue Intelligence"
+                            : t === "market"
+                              ? "Geographic Market Intelligence"
+                              : t === "imports"
+                                ? "PMS file updates"
+                                : "Property units"}
               </button>
             ))}
             <button
@@ -499,6 +539,12 @@ export function CloudApp({
               Refresh company data
             </button>
           </nav>
+          {tab === "connected" && (
+            <ConnectedEvidenceCenter
+              api={marketApi}
+              gm={snapshot.actor.role === "General Manager"}
+            />
+          )}
           {tab === "management" &&
             snapshot.actor.role === "General Manager" && (
               <ManagementCenter

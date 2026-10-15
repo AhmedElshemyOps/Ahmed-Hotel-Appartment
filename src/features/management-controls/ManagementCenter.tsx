@@ -1,3 +1,4 @@
+import { ConnectedEvidenceCenter } from "../connected-evidence/ConnectedEvidenceCenter";
 import { EvidenceView } from "./EvidenceView";
 import { MemberPermissions } from "./MemberPermissions";
 import React, { useState, useEffect } from "react";
@@ -149,6 +150,7 @@ export function ManagementCenter({
           "Staff access",
           "Private files",
           "Staging",
+          "Connected records",
         ].map((t) => (
           <button key={t} className={button} onClick={() => setTab(t)}>
             {t}
@@ -676,6 +678,7 @@ export function ManagementCenter({
       {tab === "Private files" && (
         <ProtectedUploads api={api} unitId={unitId} gm />
       )}
+      {tab === "Connected records" && <ConnectedEvidenceCenter api={api} gm />}
       {tab === "Staging" && (
         <div className={box}>
           <h3>Secure rehearsal acceptance</h3>
