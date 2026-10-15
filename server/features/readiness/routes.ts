@@ -1,3 +1,4 @@
+import { checkedReadinessEvidence } from "./private-evidence";
 import { companyMembers } from "../../db/members";
 import { randomUUID } from "node:crypto";
 import { readinessReport } from "../../../src/features/readiness/report";
@@ -106,18 +107,25 @@ export function readinessRouter(pool: Pool) {
           ).rows;
           return {
             capabilities: caps,
-            units: ws.data.apartments.map((u) => {
-              const row = rows.find((r) => r.unit_id === u.id);
-              const state = row?.data ?? initialReadiness();
-              return {
-                id: u.id,
-                unitNumber: u.unitNumber,
-                type: u.type,
-                revision: row?.revision ?? 0,
-                state: redact(state, caps),
-                assessment: assess(redact(state, caps), businessDate()),
-              };
-            }),
+            units: await Promise.all(
+              ws.data.apartments.map(async (u) => {
+                const row = rows.find((r) => r.unit_id === u.id);
+                const state = await checkedReadinessEvidence(
+                  db,
+                  a.organization_id,
+                  u.id,
+                  row?.data ?? initialReadiness(),
+                );
+                return {
+                  id: u.id,
+                  unitNumber: u.unitNumber,
+                  type: u.type,
+                  revision: row?.revision ?? 0,
+                  state: redact(state, caps),
+                  assessment: assess(redact(state, caps), businessDate()),
+                };
+              }),
+            ),
             members: await companyMembers(db, a.organization_id),
             grants:
               a.role === "General Manager"
@@ -149,15 +157,22 @@ export function readinessRouter(pool: Pool) {
               [a.organization_id],
             )
           ).rows;
-          const units = ws.data.apartments.map((u) => {
-            const r = rows.find((v) => v.unit_id === u.id);
-            return {
-              id: u.id,
-              unitNumber: u.unitNumber,
-              revision: r?.revision ?? 0,
-              state: r?.data ?? initialReadiness(),
-            };
-          });
+          const units = await Promise.all(
+            ws.data.apartments.map(async (u) => {
+              const r = rows.find((v) => v.unit_id === u.id);
+              return {
+                id: u.id,
+                unitNumber: u.unitNumber,
+                revision: r?.revision ?? 0,
+                state: await checkedReadinessEvidence(
+                  db,
+                  a.organization_id,
+                  u.id,
+                  r?.data ?? initialReadiness(),
+                ),
+              };
+            }),
+          );
           const id = randomUUID(),
             html = readinessReport(
               units,
@@ -499,7 +514,13 @@ export function readinessRouter(pool: Pool) {
               );
             next.status = action.status;
           }
-          next = stateSchema.parse(next);
+          next = await checkedReadinessEvidence(
+            db,
+            a.organization_id,
+            req.params.id,
+            stateSchema.parse(next),
+            true,
+          );
           if (
             next.status === "Active / Rentable" &&
             !assess(next, businessDate()).canActivate

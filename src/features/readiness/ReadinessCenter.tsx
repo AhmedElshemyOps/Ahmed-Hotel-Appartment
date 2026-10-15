@@ -1,3 +1,4 @@
+import { ProtectedUploads } from "../management-controls/ProtectedUploads";
 import { MemberSelect } from "../../shared/components/MemberSelect";
 import {
   DEMO_MEMBERS,
@@ -52,10 +53,12 @@ export function ReadinessCenter({
   api,
   apartments = [],
   role = "General Manager",
+  initialUnitId,
 }: {
   api?: Api;
   apartments?: Apartment[];
   role?: string;
+  initialUnitId?: string;
 }) {
   const [snapshot, setSnapshot] = useState<any>(null),
     [unitId, setUnitId] = useState(""),
@@ -139,7 +142,7 @@ export function ReadinessCenter({
   }, [api]);
   useEffect(() => {
     if (snapshot && !unitId && snapshot.units.length)
-      setUnitId(snapshot.units[0].id);
+      setUnitId(snapshot.units.some((u:any)=>u.id===initialUnitId)?initialUnitId!:snapshot.units[0].id);
   }, [snapshot, unitId]);
   const unit = snapshot?.units.find((u: any) => u.id === unitId);
   useEffect(() => {
@@ -645,6 +648,7 @@ export function ReadinessCenter({
           ))}
         </>
       )}
+      {unit && (tab === "PRO & Compliance Center" || tab === "OTA Listing Readiness") && <ProtectedUploads api={api} unitId={unitId} gm={gm}/>}
       {unit && tab === "Property Activation Center" && (
         <>
           <div className="grid gap-3 md:grid-cols-3">

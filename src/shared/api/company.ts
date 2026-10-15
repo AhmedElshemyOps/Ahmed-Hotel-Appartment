@@ -20,6 +20,7 @@ export async function cloudApi(auth: Auth, path: string, body?: unknown) {
     body: body === undefined ? undefined : JSON.stringify(body),
     cache: "no-store",
   });
+  if (response.ok && path.endsWith("/download")) return { blob: await response.blob() };
   const json = await response.json();
   if (!response.ok)
     throw new CloudApiError(response.status, json.error || "Request failed.");

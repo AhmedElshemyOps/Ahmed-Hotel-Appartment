@@ -1,3 +1,4 @@
+import { ManagementCenter } from "../features/management-controls/ManagementCenter";
 import React, { useEffect, useState, useCallback, lazy, Suspense } from "react";
 const AccountingCenter = lazy(() =>
   import("../features/accounting/AccountingCenter").then((m) => ({
@@ -17,6 +18,7 @@ const MarketWorkspace = lazy(() =>
 import { initializeApp } from "firebase/app";
 import {
   getAuth,
+  createUserWithEmailAndPassword,
   inMemoryPersistence,
   setPersistence,
   signInWithEmailAndPassword,
@@ -32,7 +34,12 @@ import {
   type Auth,
 } from "firebase/auth";
 
-import type { Workspace, Actor, Preview, Mapping } from "../shared/api/contracts";
+import type {
+  Workspace,
+  Actor,
+  Preview,
+  Mapping,
+} from "../shared/api/contracts";
 import { RevenueView } from "../features/revenue/RevenueView";
 import { calculatePropertyKPISummary } from "../features/revenue/kpiEngine";
 import { cloudApi, CloudApiError } from "../shared/api/company";
@@ -91,6 +98,15 @@ export function CloudApp({
   const [resolver, setResolver] = useState<MultiFactorResolver | null>(null),
     [secret, setSecret] = useState<TotpSecret | null>(null);
   const [tab, setTab] = useState("operations");
+  const [sourceUnitId, setSourceUnitId] = useState<string | undefined>();
+  const [invitationCode, setInvitationCode] = useState(
+    () =>
+      new URLSearchParams(window.location.hash.slice(1)).get("invite") || "",
+  );
+  useEffect(() => {
+    if (window.location.hash.startsWith("#invite="))
+      window.history.replaceState(null, "", window.location.pathname);
+  }, []);
   const marketApi = useCallback(
     async (path: string, body?: unknown) => {
       try {
@@ -322,6 +338,20 @@ export function CloudApp({
           <button className={button} disabled={busy}>
             Continue
           </button>
+          {!resolver && invitationCode && (
+            <button
+              type="button"
+              className={button}
+              disabled={busy}
+              onClick={() =>
+                run(async () => {
+                  await createUserWithEmailAndPassword(auth, email, password);
+                })
+              }
+            >
+              Create invited account
+            </button>
+          )}
           {resolver && (
             <button
               type="button"
@@ -339,8 +369,10 @@ export function CloudApp({
         <section className={box + " max-w-lg m-6"}>
           <h2 className="text-xl">Complete account security</h2>
           <p>
-            Your administrator must assign a company seat. Verify your email and
-            enroll an authenticator before accessing company data.
+            Verify your email and enroll an authenticator before accessing
+            company data. After enrollment, sign out and sign in with the
+            authenticator, then accept your invitation. Existing staff can retry
+            access after security setup.
           </p>
           {!user.emailVerified && (
             <button
@@ -392,6 +424,28 @@ export function CloudApp({
               </button>
             </>
           )}
+          <label>
+            Invitation code
+            <input
+              aria-label="Invitation code"
+              className={input}
+              value={invitationCode}
+              onChange={(e) => setInvitationCode(e.target.value)}
+            />
+          </label>
+          <button
+            className={button}
+            disabled={busy || !invitationCode}
+            onClick={() =>
+              run(async () => {
+                await cloudApi(auth, "/team/accept", { token: invitationCode });
+                setInvitationCode("");
+                await refresh();
+              })
+            }
+          >
+            Accept staff invitation
+          </button>
           <button
             className={button}
             disabled={busy}
@@ -404,6 +458,9 @@ export function CloudApp({
         <>
           <nav className="flex flex-wrap gap-3 p-4">
             {[
+              ...(snapshot.actor.role === "General Manager"
+                ? ["management"]
+                : []),
               "operations",
               "readiness",
               "accounting",
@@ -417,19 +474,21 @@ export function CloudApp({
                 className={button + (tab === t ? " ring-2 ring-sky-300" : "")}
                 onClick={() => setTab(t)}
               >
-                {t === "operations"
-                  ? "Tomorrow and guest service"
-                  : t === "readiness"
-                    ? "Compliance, Activation & OTA"
-                    : t === "accounting"
-                      ? "Odoo Accounting & Financial Intelligence"
-                      : t === "revenue"
-                        ? "Revenue Intelligence"
-                        : t === "market"
-                          ? "Geographic Market Intelligence"
-                          : t === "imports"
-                            ? "PMS file updates"
-                            : "Property units"}
+                {t === "management"
+                  ? "Management Centre"
+                  : t === "operations"
+                    ? "Tomorrow and guest service"
+                    : t === "readiness"
+                      ? "Compliance, Activation & OTA"
+                      : t === "accounting"
+                        ? "Odoo Accounting & Financial Intelligence"
+                        : t === "revenue"
+                          ? "Revenue Intelligence"
+                          : t === "market"
+                            ? "Geographic Market Intelligence"
+                            : t === "imports"
+                              ? "PMS file updates"
+                              : "Property units"}
               </button>
             ))}
             <button
@@ -440,6 +499,16 @@ export function CloudApp({
               Refresh company data
             </button>
           </nav>
+          {tab === "management" &&
+            snapshot.actor.role === "General Manager" && (
+              <ManagementCenter
+                api={marketApi}
+                onNavigate={(area, unitId) => {
+                  setSourceUnitId(unitId);
+                  setTab(area);
+                }}
+              />
+            )}
           {tab === "operations" && (
             <OperationsBoard
               data={snapshot.data}
@@ -463,7 +532,11 @@ export function CloudApp({
           )}
           {tab === "readiness" && (
             <Suspense fallback={<p className="p-6">Loading readiness…</p>}>
-              <ReadinessCenter api={marketApi} role={snapshot.actor.role} />
+              <ReadinessCenter
+                api={marketApi}
+                role={snapshot.actor.role}
+                initialUnitId={sourceUnitId}
+              />
             </Suspense>
           )}
           {tab === "market" && (

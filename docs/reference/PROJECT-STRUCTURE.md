@@ -49,3 +49,7 @@ Run `npm ci`, then `npm run check` and `npm run test:browser` using Node 22 or l
 The Docker runtime copies the complete `src/` directory because the typed server consumes shared models and feature rules. New features therefore no longer require another manual feature-specific Docker COPY entry. Dependencies, startup entrypoints, migration paths and test discovery remain unchanged.
 
 Use the documentation index rather than guessing old paths. Links pinned to older GitHub commits in the beginner guide deliberately describe that historical reviewed snapshot; they should not be rewritten to imply a new audit of that earlier commit.
+
+## Management controls patch
+
+`src/features/management-controls/` groups the GM priority list, property policies, report versions, staff access and file controls. Server composition, shared authorization, team workflows and file workflows are separated in `server/features/management-controls/`. Byte inspection, scanner and private storage adapters are in `server/integrations/storage/`. The staging commands stay in `scripts/`; migration 008 adds the new records without changing earlier migrations. Start from the documentation index for the management, upload and staging guides.

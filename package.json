@@ -18,7 +18,9 @@
     "market:worker": "node --import tsx scripts/market-worker.ts",
     "session:demo": "node --import tsx scripts/demo-session.ts",
     "session:check": "node --import tsx scripts/session-check.ts",
-    "audit:structure": "node --import tsx scripts/check-structure.ts"
+    "audit:structure": "node --import tsx scripts/check-structure.ts",
+    "staging:check": "node --import tsx scripts/staging-check.ts",
+    "staging:restore": "node --import tsx scripts/staging-restore.ts"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",
@@ -37,6 +39,7 @@
     "react": "^19.0.1",
     "react-dom": "^19.0.1",
     "recharts": "^3.10.1",
+    "sharp": "^0.35.5",
     "vite": "^8.3.0",
     "zod": "^4.6.7"
   },

@@ -7,6 +7,7 @@ export type Workspace = {
   apartments: Apartment[];
   reservations: StoredReservation[];
   guestService?: GuestService;
+  operatingSettings?: Record<string, import("../../features/management-controls/model").OperatingPolicy>;
 };
 export const FIELDS = [
   "externalId",

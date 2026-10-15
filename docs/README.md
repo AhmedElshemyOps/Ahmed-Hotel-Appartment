@@ -13,6 +13,11 @@ Start with the [beginner app guide](guides/APP-GUIDE-AND-ROADMAP.md). For curren
 
 ## Current module references
 
+- [Management Centre, property policies, report history and staff access](reference/MANAGEMENT-CONTROLS.md)
+- [Private evidence files](reference/PRIVATE-UPLOADS.md)
+- [Staging setup and acceptance](reference/STAGING.md)
+- [Development patch 5–10](releases/MANAGEMENT-CONTROLS.md)
+
 - [Cloud setup and access](reference/cloud/README.md), [hosting](reference/cloud/hosting.md), [guest service](reference/cloud/guest-service.md), [integrations](reference/cloud/integrations.md)
 - [Market intelligence](reference/market/README.md), [methodology](reference/market/methodology.md), [security](reference/market/data-security.md), [Google Workspace](reference/market/google-workspace.md)
 - [Readiness and compliance](reference/readiness/README.md)

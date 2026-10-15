@@ -47,3 +47,7 @@ Protected object-storage uploads, byte-level image inspection, antivirus scannin
 ## Employee names
 
 Document/task assignees, team responsibilities and current readiness views use named company members. The GM manages display names in Team responsibilities after recent MFA. Apply migration 007 and grant SELECT/INSERT/UPDATE on member_profiles to the runtime role. See the [employee-name release and installation record](../../releases/EMPLOYEE-NAMES.md) for unknown/departed-member labels, snapshot history, validation and scope. Names are labels; account IDs and role/capability checks remain authoritative.
+
+## Private upload evidence
+
+The new [private upload module](../PRIVATE-UPLOADS.md) accepts server-checked private references for document/photo evidence alongside existing HTTPS references. Readiness cannot use unscanned, expired, deleted, cross-company or cross-apartment uploaded files as verified evidence. External URL records remain metadata references; no external URL bytes are fetched or scanned by this module.
