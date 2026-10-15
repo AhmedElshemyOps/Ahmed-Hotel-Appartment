@@ -2,17 +2,19 @@ import { PGlite } from "@electric-sql/pglite";
 import { readFile, readdir } from "node:fs/promises";
 import type { Pool } from "pg";
 import { randomUUID } from "node:crypto";
-import { marketDemo } from "../../src/market/demo";
-import { businessDate } from "../../src/services/guestService";
-import { addDays, type MarketQuery } from "../../src/market/model";
-import type { Apartment } from "../../src/types";
-import { lockedWorkspace, transaction, type Actor } from "../../server/cloud";
+import { marketDemo } from "../../src/features/market/demo";
+import { businessDate } from "../../src/features/guest-service/guestService";
+import { addDays, type MarketQuery } from "../../src/features/market/model";
+import type { Apartment } from "../../src/shared/types";
+import { lockedWorkspace } from "../../server/db/workspace";
+import { transaction } from "../../server/db/transaction";
+import { type Actor } from "../../server/auth/permissions";
 import {
   saveProfile,
   savePolicy,
   saveRates,
   ingestPacket,
-} from "../../server/market/repository";
+} from "../../server/features/market/repository";
 export const apartments = Array.from({ length: 40 }, (_, i) => ({
   id: "u" + i,
   unitNumber: String(101 + i),

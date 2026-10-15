@@ -1,4 +1,7 @@
-import { accountingRouter } from "./accounting/routes";
+import { lockedWorkspace, type Workspace } from "./db/workspace";
+export { lockedWorkspace, type Workspace } from "./db/workspace";
+import { companySession } from "./auth/session";
+import { accountingRouter } from "./features/accounting/routes";
 import {
   Router,
   type Request,
@@ -6,103 +9,39 @@ import {
   type NextFunction,
 } from "express";
 import { Pool, type PoolClient } from "pg";
-import { initializeApp, getApps, applicationDefault } from "firebase-admin/app";
 import { getAuth } from "firebase-admin/auth";
 import { randomUUID } from "node:crypto";
-import { readinessRouter } from "./readiness/routes";
-import { marketRouter } from "./market/routes";
-import { googleRouter } from "./market/google";
-import type { Apartment, UserRole } from "../src/types";
+import { readinessRouter } from "./features/readiness/routes";
+import { marketRouter } from "./features/market/routes";
+import { googleRouter } from "./integrations/google/routes";
+import type { Apartment, UserRole } from "../src/shared/types";
 import {
   DEFAULT_CHANNELS,
   validateChannel,
   type DistributionChannel,
-} from "../src/services/distribution";
+} from "../src/features/revenue/distribution";
 import {
   fingerprint,
   previewPms,
   type Preview,
   type StoredReservation,
-} from "./pms";
+} from "./integrations/pms/import";
 import {
   DEFAULT_GUEST_SERVICE,
   serviceTasks,
   validateServiceSettings,
   type GuestService,
-} from "../src/services/guestService";
+} from "../src/features/guest-service/guestService";
 
-export type Workspace = {
-  channels: DistributionChannel[];
-  apartments: Apartment[];
-  reservations: StoredReservation[];
-  guestService?: GuestService;
-};
-export type Actor = { uid: string; organization_id: string; role: UserRole };
-export class HttpError extends Error {
-  constructor(
-    public status: number,
-    message: string,
-  ) {
-    super(message);
-  }
-}
-export function authorize(
-  actor: Actor,
-  action: "read" | "channel" | "import" | "unit",
-) {
-  const roles =
-    action === "read"
-      ? [
-          "General Manager",
-          "Finance Manager",
-          "Revenue Manager",
-          "Read-Only Viewer",
-        ]
-      : action === "unit"
-        ? ["General Manager"]
-        : ["General Manager", "Finance Manager", "Revenue Manager"];
-  if (!roles.includes(actor.role))
-    throw new HttpError(403, "Your role does not permit this action.");
-}
+import { authorize, HttpError, type Actor } from "./auth/permissions";
+export { authorize, HttpError, type Actor } from "./auth/permissions";
 const route =
   (fn: (req: Request, res: Response) => Promise<unknown>) =>
   (req: Request, res: Response, next: NextFunction) => {
     fn(req, res).catch(next);
   };
-const initial = (): Workspace => ({
-  channels: DEFAULT_CHANNELS,
-  apartments: [],
-  reservations: [],
-  guestService: DEFAULT_GUEST_SERVICE,
-});
-export async function transaction<T>(
-  pool: Pool,
-  fn: (db: PoolClient) => Promise<T>,
-) {
-  const db = await pool.connect();
-  try {
-    await db.query("BEGIN");
-    const value = await fn(db);
-    await db.query("COMMIT");
-    return value;
-  } catch (e) {
-    await db.query("ROLLBACK");
-    throw e;
-  } finally {
-    db.release();
-  }
-}
-export async function lockedWorkspace(db: PoolClient, org: string) {
-  await db.query(
-    "INSERT INTO workspaces(organization_id,data) VALUES($1,$2) ON CONFLICT DO NOTHING",
-    [org, initial()],
-  );
-  const { rows } = await db.query(
-    "SELECT revision,data FROM workspaces WHERE organization_id=$1 FOR UPDATE",
-    [org],
-  );
-  return rows[0] as { revision: number; data: Workspace };
-}
+import { transaction } from "./db/transaction";
+export { transaction } from "./db/transaction";
 async function save(db: PoolClient, org: string, data: Workspace) {
   await db.query(
     "UPDATE workspaces SET data=$2, revision=revision+1 WHERE organization_id=$1",
@@ -224,47 +163,7 @@ export function createCloudRouter(
     getAuth().verifyIdToken(token, true),
 ) {
   const router = Router();
-  router.use((req: Request, res: Response, next: NextFunction) => {
-    (async () => {
-      const token = req.headers.authorization?.match(/^Bearer (\S+)$/)?.[1];
-      if (!token)
-        throw new HttpError(401, "Sign in with your company account.");
-      let claims;
-      try {
-        claims = await verify(token);
-      } catch {
-        throw new HttpError(401, "Session expired. Sign in again.");
-      }
-      if (
-        !Number.isFinite(claims.auth_time) ||
-        Date.now() / 1000 - claims.auth_time > 43200 ||
-        claims.auth_time > Date.now() / 1000 + 300
-      )
-        throw new HttpError(
-          401,
-          "Session age limit reached. Sign out and sign in again.",
-        );
-      if (!claims.email_verified || !claims.firebase?.sign_in_second_factor)
-        throw new HttpError(
-          403,
-          "Verified email and multi-factor authentication are required.",
-        );
-      const { rows } = await pool.query(
-        "SELECT uid,organization_id,role FROM memberships WHERE uid=$1",
-        [claims.uid],
-      );
-      if (!rows.length)
-        throw new HttpError(
-          403,
-          "This account has not been assigned a company seat.",
-        );
-      res.locals.actor = rows[0] as Actor;
-      res.locals.authTime = claims.auth_time;
-      authorize(res.locals.actor, "read");
-      res.set("Cache-Control", "no-store");
-      next();
-    })().catch(next);
-  });
+  router.use(companySession(pool, verify));
   router.use("/market/google", googleRouter(pool));
   router.use("/market", marketRouter(pool));
   router.use("/readiness", readinessRouter(pool));
@@ -534,25 +433,4 @@ export function createCloudRouter(
   );
   return router;
 }
-export function cloudPool() {
-  if (
-    !process.env.DATABASE_URL ||
-    !process.env.GOOGLE_CLOUD_PROJECT ||
-    !process.env.FIREBASE_AUTH_DOMAIN ||
-    !process.env.FIREBASE_WEB_API_KEY
-  )
-    throw Error(
-      "Cloud mode requires database, project and Firebase public web configuration.",
-    );
-  if (!getApps().length)
-    initializeApp({
-      credential: applicationDefault(),
-      projectId: process.env.GOOGLE_CLOUD_PROJECT,
-    });
-  return new Pool({
-    connectionString: process.env.DATABASE_URL,
-    max: 5,
-    connectionTimeoutMillis: 10000,
-    statement_timeout: 15000,
-  });
-}
+export { cloudPool } from "./db/pool";

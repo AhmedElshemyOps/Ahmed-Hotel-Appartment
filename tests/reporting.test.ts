@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { reportPeriod, reportCsv, reportHtml } from "../src/reports/reporting";
+import { reportPeriod, reportCsv, reportHtml } from "../src/features/reports/reporting";
 test("daily weekly and monthly reports have real date windows including leap months", () => {
   assert.deepEqual(reportPeriod("DAILY", "2026-10-15"), {
     start: "2026-10-15",

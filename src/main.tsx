@@ -1,6 +1,6 @@
 import { createRoot } from "react-dom/client";
-import App from "./App.tsx";
-import { CloudApp } from "./cloud/CloudApp";
+import App from "./app/App.tsx";
+import { CloudApp } from "./app/CloudApp";
 import "./index.css";
 const root = createRoot(document.getElementById("root")!);
 fetch("/api/config", { cache: "no-store" })

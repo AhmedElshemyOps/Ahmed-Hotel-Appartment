@@ -1,12 +1,12 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { previewPms, csvRows, type Mapping } from "../server/pms";
+import { previewPms, csvRows, type Mapping } from "../server/integrations/pms/import";
 import {
   validateChannel,
   DEFAULT_CHANNELS,
   distributionStats,
-} from "../src/services/distribution";
-import type { Apartment } from "../src/types";
+} from "../src/features/revenue/distribution";
+import type { Apartment } from "../src/shared/types";
 const fields = [
   "externalId",
   "unitNumber",
@@ -129,7 +129,7 @@ test("next-day plan follows changes/cancellations; SLA task IDs are stable and m
     serviceTasks,
     DEFAULT_GUEST_SERVICE,
     renderTemplate,
-  } = await import("../src/services/guestService");
+  } = await import("../src/features/guest-service/guestService");
   const r = preview(row).changes[0].after.data;
   assert.equal(nextDayOperations([r], "2026-10-03").departures.length, 1);
   assert.equal(
@@ -161,7 +161,7 @@ test("next-day plan follows changes/cancellations; SLA task IDs are stable and m
 
 test("SLA policy validation refuses invalid deadlines and client-supplied completion claims", async () => {
   const { DEFAULT_GUEST_SERVICE, validateServiceSettings } =
-    await import("../src/services/guestService");
+    await import("../src/features/guest-service/guestService");
   const current = structuredClone(DEFAULT_GUEST_SERVICE),
     input = structuredClone(current);
   input.completed = { forged: { at: "now", by: "attacker" } };

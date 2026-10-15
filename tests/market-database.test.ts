@@ -3,19 +3,21 @@ import assert from "node:assert/strict";
 import { randomUUID, randomBytes } from "node:crypto";
 import express from "express";
 import { marketFixture, queryFor } from "./helpers/market";
-import { transaction, createCloudRouter, HttpError } from "../server/cloud";
+import { transaction } from "../server/db/transaction";
+import { createCloudRouter } from "../server/cloud";
+import { HttpError } from "../server/auth/permissions";
 import {
   loadDataset,
   propertyAccess,
   ingestPacket,
   saveProfile,
-} from "../server/market/repository";
+} from "../server/features/market/repository";
 import {
   createRecommendation,
   decideRecommendation,
-} from "../server/market/routes";
-import { runMarketWorkerOnce } from "../server/market/worker";
-import { encryptToken, decryptToken } from "../server/market/google";
+} from "../server/features/market/routes";
+import { runMarketWorkerOnce } from "../server/features/market/worker";
+import { encryptToken, decryptToken } from "../server/integrations/google/routes";
 
 test("normalized registry round-trips characteristics and appends profile correction history", async () => {
   const f = await marketFixture();
@@ -373,7 +375,7 @@ test("Google consent binds state to the initiating browser and consumes it once 
   process.env.GOOGLE_OAUTH_CLIENT_SECRET = "test-secret";
   process.env.GOOGLE_OAUTH_REDIRECT_URI =
     "http://127.0.0.1/integrations/google/callback";
-  const { googleCallback } = await import("../server/market/google");
+  const { googleCallback } = await import("../server/integrations/google/routes");
   const app = express();
   app.use(express.json());
   app.get("/integrations/google/callback", googleCallback(f.pool));
@@ -477,7 +479,7 @@ test("approved Google exports use RAW spreadsheet values, replay once and honor 
   const f = await marketFixture();
   const previous = process.env.GOOGLE_TOKEN_ENCRYPTION_KEY;
   process.env.GOOGLE_TOKEN_ENCRYPTION_KEY = randomBytes(32).toString("base64");
-  const { publishGoogleReview } = await import("../server/market/google");
+  const { publishGoogleReview } = await import("../server/integrations/google/routes");
   try {
     const rec = await transaction(f.pool, (db) =>
       createRecommendation(
