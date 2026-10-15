@@ -1,4 +1,14 @@
 import React, { useEffect, useState, useCallback, lazy, Suspense } from "react";
+const AccountingCenter = lazy(() =>
+  import("../accounting/AccountingCenter").then((m) => ({
+    default: m.AccountingCenter,
+  })),
+);
+const ReadinessCenter = lazy(() =>
+  import("../readiness/ReadinessCenter").then((m) => ({
+    default: m.ReadinessCenter,
+  })),
+);
 const MarketWorkspace = lazy(() =>
   import("../market/MarketWorkspace").then((m) => ({
     default: m.MarketWorkspace,
@@ -392,26 +402,36 @@ export function CloudApp({
         </section>
       ) : (
         <>
-          <nav className="flex gap-3 p-4">
-            {["operations", "revenue", "market", "imports", "units"].map(
-              (t) => (
-                <button
-                  key={t}
-                  className={button + (tab === t ? " ring-2 ring-sky-300" : "")}
-                  onClick={() => setTab(t)}
-                >
-                  {t === "operations"
-                    ? "Tomorrow and guest service"
-                    : t === "revenue"
-                      ? "Revenue Intelligence"
-                      : t === "market"
-                        ? "Geographic Market Intelligence"
-                        : t === "imports"
-                          ? "PMS file updates"
-                          : "Property units"}
-                </button>
-              ),
-            )}
+          <nav className="flex flex-wrap gap-3 p-4">
+            {[
+              "operations",
+              "readiness",
+              "accounting",
+              "revenue",
+              "market",
+              "imports",
+              "units",
+            ].map((t) => (
+              <button
+                key={t}
+                className={button + (tab === t ? " ring-2 ring-sky-300" : "")}
+                onClick={() => setTab(t)}
+              >
+                {t === "operations"
+                  ? "Tomorrow and guest service"
+                  : t === "readiness"
+                    ? "Compliance, Activation & OTA"
+                    : t === "accounting"
+                      ? "Odoo Accounting & Financial Intelligence"
+                      : t === "revenue"
+                        ? "Revenue Intelligence"
+                        : t === "market"
+                          ? "Geographic Market Intelligence"
+                          : t === "imports"
+                            ? "PMS file updates"
+                            : "Property units"}
+              </button>
+            ))}
             <button
               className={button}
               disabled={busy}
@@ -431,6 +451,20 @@ export function CloudApp({
               run={run}
               busy={busy}
             />
+          )}
+          {tab === "accounting" && (
+            <Suspense fallback={<p className="p-6">Loading accounting…</p>}>
+              <AccountingCenter
+                api={marketApi}
+                apartments={snapshot.data.apartments}
+                role={snapshot.actor.role}
+              />
+            </Suspense>
+          )}
+          {tab === "readiness" && (
+            <Suspense fallback={<p className="p-6">Loading readiness…</p>}>
+              <ReadinessCenter api={marketApi} role={snapshot.actor.role} />
+            </Suspense>
           )}
           {tab === "market" && (
             <Suspense

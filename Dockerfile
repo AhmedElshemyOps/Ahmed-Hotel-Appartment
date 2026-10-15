@@ -16,6 +16,8 @@ COPY --from=build --chown=node:node /app/server ./server
 COPY --from=build --chown=node:node /app/src/types ./src/types
 COPY --from=build --chown=node:node /app/src/services ./src/services
 COPY --from=build --chown=node:node /app/src/market ./src/market
+COPY --from=build --chown=node:node /app/src/readiness ./src/readiness
+COPY --from=build --chown=node:node /app/src/accounting ./src/accounting
 COPY --from=build --chown=node:node /app/migrations ./migrations
 COPY --from=build --chown=node:node /app/scripts ./scripts
 COPY --from=build --chown=node:node /app/dist ./dist

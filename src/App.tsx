@@ -5,6 +5,8 @@ import { analyzeSpecialists } from './services/specialistAgents';
  */
 
 import React, { useState, useMemo, useEffect, lazy, Suspense } from 'react';
+const AccountingCenter=lazy(()=>import('./accounting/AccountingCenter').then(m=>({default:m.AccountingCenter})));
+const ReadinessCenter=lazy(()=>import('./readiness/ReadinessCenter').then(m=>({default:m.ReadinessCenter})));
 const MarketWorkspace = lazy(() => import('./market/MarketWorkspace').then(m => ({ default:m.MarketWorkspace })));
 import {
   UserRole,
@@ -245,6 +247,8 @@ export default function App() {
         />
 
         <main className="flex-1 overflow-y-auto">
+          {currentTab === 'accounting' && <Suspense fallback={<p className="p-6">Loading accounting…</p>}><AccountingCenter apartments={activeApartments} role={currentRole}/></Suspense>}
+          {currentTab === 'readiness' && <Suspense fallback={<p className="p-6">Loading readiness…</p>}><ReadinessCenter apartments={activeApartments} role={currentRole}/></Suspense>}
           {currentTab === 'market' && <Suspense fallback={<p className="p-6">Loading market intelligence…</p>}><MarketWorkspace apartments={activeApartments}/></Suspense>}
           {currentTab === 'intelligence' && <PropertyIntelligenceView apartments={activeApartments} reservations={activeReservations} transactions={activeTransactions} maintenance={activeMaintenance} complaints={activeComplaints} kpi={kpiSummary} start={dateInterval.start} end={dateInterval.end} mode={dataMode} />}
           {currentTab === 'dashboard' && (
